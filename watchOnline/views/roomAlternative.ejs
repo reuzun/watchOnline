@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Room: <%=roomId%>
+    </title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<html>
+
+<body>
+    <input id="link" type="text">
+    <input id="submit" type="submit">
+
+    <div id="videoContainer">
+        <div id="player"></div>
+    </div>
+
+    <script>
+        var imp = null;
+        const socket = io(`http://localhost:55556`); // Our server.js portnumber
+        let currentVideoId = "<%=videoId%>"
+
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: "<%=videoId%>",
+                playerVars: {
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': (event) => {
+/*
+                        console.log('Playing Servera iletiliyor!');
+                        if (event.data == YT.PlayerState.PLAYING) {
+                            socket.emit('statusChanged', 1)
+                        }
+                        else{
+                            socket.emit('statusChanged', 0);
+                        }*/
+                    }
+                }
+            });
+        }
+
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+            let videoC = document.getElementById("videoContainer");
+            videoC.addEventListener("click", (e) => {
+                console.log("You clicked!");
+                socket.emit('videoClick');
+            })
+
+        });
+        var oFrame = null;
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+            setInterval(() => {
+                socket.emit("currentTime", player.getCurrentTime(), currentVideoId)
+            }, 250)
+            setTimeout(() => socket.emit('videoClick', true), 400); // True points is that your first click.
+        }
+
+
+
+        socket.on("statusChange", (bool) => { // If we use socket.emit instead of broadcasting there will be pause/play problem in 3,5th people.
+            if (player.getPlayerState() == 1) {
+                player.pauseVideo();
+                //socket.broadcast.emit('statusChanged', 0)
+            }
+            else if (player.getPlayerState() == 2) {
+                player.playVideo();
+                //socket.broadcast.emit('statusChanged', 1)
+            }
+        })
+
+        socket.on('seek', (time, status, vidId) => {
+            player.seekTo(time);
+            if (status == 0) {
+                player.pauseVideo();
+            }
+            else if (status == 1) {
+                player.playVideo();
+            }
+            currentVideoId = vidId;
+
+        })
+
+        socket.on('clientVideoChange', (link) => {
+            player.loadVideoById(link);
+            window.history.pushState("", "", link);
+        })
+
+        socket.on('handleStatus', (status)=>{
+            console.log('handle ediliyor.')
+            if (status == 0) {
+                player.pauseVideo();
+            }
+            else if (status == 1 &&  !YT.PlayerState.PLAYING) {
+                player.playVideo();
+            }
+        })
+
+
+        submit.onclick = () => {
+            let link = document.getElementById("link").value;
+            let submit = document.getElementById("submit");
+            link = link.substring(link.lastIndexOf("=") + 1, link.length)
+            currentVideoId = link;
+            socket.emit('videoChange', link);
+            player.loadVideoById(link);
+        }
+
+    </script>
+</body>
+
+</html>
