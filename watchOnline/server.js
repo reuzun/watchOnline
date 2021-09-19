@@ -43,9 +43,6 @@ app.post('/room/:roomId/video/:videoId', (req, res) => {
 
 
     io.on('connection', (socket) => {
-      socket.on('videoClick', () => {
-        io.emit('statusChange');
-      });
 
       socket.on('currentTime', (time, vid) => {
         if (time > globalTime) {
@@ -65,7 +62,7 @@ app.post('/room/:roomId/video/:videoId', (req, res) => {
 
       socket.on('statusChanged', (status)=>{
         globalStatus = status;
-        socket.emit('handleStatus', status);
+        socket.broadcast.emit('handleStatus', status);
       })
 
 
@@ -74,14 +71,10 @@ app.post('/room/:roomId/video/:videoId', (req, res) => {
     availableRooms.push(req.body.room)
   } else { 
     io.on('connection', (socket) => {
-      socket.on('videoClick', (bool) => {
-        if (bool == true) {
-          io.emit('seek', globalTime, globalStatus, CvideoId);
-        } else {
-          io.emit('statusChange');
-        }
+      socket.on('init', ()=>{
+        io.emit('seek', globalTime, globalStatus, CvideoId);
       });
-
+      
       socket.on('currentTime', (time, vid) => {
         if (time > globalTime) {
           globalTime = time;
@@ -96,7 +89,6 @@ app.post('/room/:roomId/video/:videoId', (req, res) => {
 
       socket.on('statusChanged', (status)=>{
         globalStatus = status;
-        console.log('Istek alındı! Cliente handle etmesi için gönderiliyor!');
         socket.broadcast.emit('handleStatus', status);
       })
 

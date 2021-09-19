@@ -39,51 +39,37 @@
                 events: {
                     'onReady': onPlayerReady,
                     'onStateChange': (event) => {
-/*
-                        console.log('Playing Servera iletiliyor!');
-                        if (event.data == YT.PlayerState.PLAYING) {
+                        if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED ||  event.data == YT.PlayerState.BUFFERING) {
                             socket.emit('statusChanged', 1)
                         }
-                        else{
+                        else {
                             socket.emit('statusChanged', 0);
-                        }*/
+                        }
                     }
                 }
             });
         }
 
+        socket.on('handleStatus', (status) => {
+            if (status == 0) {
+                player.pauseVideo();
+            }
+            else if (status == 1) {
+                player.playVideo();
+            }
+        })
 
 
-        document.addEventListener("DOMContentLoaded", () => {
-            let videoC = document.getElementById("videoContainer");
-            videoC.addEventListener("click", (e) => {
-                console.log("You clicked!");
-                socket.emit('videoClick');
-            })
 
-        });
-        var oFrame = null;
 
         function onPlayerReady(event) {
-            event.target.playVideo();
+            setTimeout(() => event.target.playVideo(), 100 );
             setInterval(() => {
                 socket.emit("currentTime", player.getCurrentTime(), currentVideoId)
             }, 250)
-            setTimeout(() => socket.emit('videoClick', true), 400); // True points is that your first click.
+            socket.emit('init');
         }
 
-
-
-        socket.on("statusChange", (bool) => { // If we use socket.emit instead of broadcasting there will be pause/play problem in 3,5th people.
-            if (player.getPlayerState() == 1) {
-                player.pauseVideo();
-                //socket.broadcast.emit('statusChanged', 0)
-            }
-            else if (player.getPlayerState() == 2) {
-                player.playVideo();
-                //socket.broadcast.emit('statusChanged', 1)
-            }
-        })
 
         socket.on('seek', (time, status, vidId) => {
             player.seekTo(time);
@@ -102,15 +88,6 @@
             window.history.pushState("", "", link);
         })
 
-        socket.on('handleStatus', (status)=>{
-            console.log('handle ediliyor.')
-            if (status == 0) {
-                player.pauseVideo();
-            }
-            else if (status == 1 &&  !YT.PlayerState.PLAYING) {
-                player.playVideo();
-            }
-        })
 
 
         submit.onclick = () => {
