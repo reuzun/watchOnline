@@ -7,6 +7,7 @@ const io = new Server(server);
 
 // Setting env variables.
 const dotenv = require('dotenv');
+const { Socket } = require('dgram');
 dotenv.config();
 const API_SERVER_PORT = process.env.PORT
 
@@ -29,39 +30,45 @@ app.post('/room', (req, res) => {
 });
 
 var globalStatus = 1;
-var globalTime = 0;
+//var globalTime = 0;
 var CvideoId = "9VksF2IXlQw";
+
+roomDatas = {}; // Uses key as roomId and an object value as datas including videoId
+
 app.post('/room/:roomId/video/:videoId', (req, res) => {
   
-  res.render('roomAlternative.ejs', {
+  /*res.render('roomAlternative.ejs', {
     roomId: `${req.body.room}`,
     videoId: `${CvideoId}`,
-  });
+  });*/
 
+  /*io.of(`/room/${req.body.room}`).on('connection', async (socket)=>{
+    // let roomId = socket.handshake.auth.roomId;
+    socket.emit('message', `message from room ${req.body.room}`)
+  })*/
+
+  res.render('roomAlternative.ejs', {
+    roomId: `${req.body.room}`,
+    videoId: `${roomDatas[req.body.room] ? roomDatas[req.body.room].vid : CvideoId}`,
+  });
   // Creating new Room
   if (!availableRooms.includes(req.body.room)) {
 
-
-    io.on('connection', (socket) => {
-
-      socket.on('currentTime', (time, vid) => {
-        if (time > globalTime) {
-          globalTime = time;
-        }
+    io.of(`/room/${req.body.room}`).on('connection', (socket) => {
+     
+      socket.on('currentTime', (time, vid, roomId) => {
+          roomDatas[roomId] = {vid:vid, time:time, status:1} // An if may required
       })
 
-      socket.on('videoChange', (vid) => {
-        globalTime = 0;
-        CvideoId = vid;
-        io.emit('clientVideoChange', CvideoId)
+      socket.on('videoChange', (vid, roomId) => {
+        roomDatas[roomId] = {vid:vid, time:0, status:1}
+        socket.broadcast.emit('clientVideoChange', vid)
       })
 
       socket.on('statusChanged', (status)=>{
-        globalStatus = status;
       })
 
       socket.on('statusChanged', (status)=>{
-        globalStatus = status;
         socket.broadcast.emit('handleStatus', status);
       })
 
@@ -70,29 +77,28 @@ app.post('/room/:roomId/video/:videoId', (req, res) => {
 
     availableRooms.push(req.body.room)
   } else { 
-    io.on('connection', (socket) => {
-      socket.on('init', ()=>{
-        io.emit('seek', globalTime, globalStatus, CvideoId);
+    io.of(`/room/${req.body.room}`).on('connection', (socket) => {
+
+      socket.on('init', (roomId)=>{
+        socket.emit('seek',  roomDatas[roomId].time,  roomDatas[roomId].status,  roomDatas[roomId].vid);
       });
       
-      socket.on('currentTime', (time, vid) => {
-        if (time > globalTime) {
-          globalTime = time;
-        }
+      socket.on('currentTime', (time, vid, roomId) => {
+        roomDatas[roomId] = {vid:vid, time:time, status:1} // An if may required
       })
 
-      socket.on('videoChange', (vid) => {
-        globalTime = 0;
-        CvideoId = vid;
-        io.emit('clientVideoChange', CvideoId)
+      socket.on('videoChange', (vid, roomId) => {
+        roomDatas[roomId] = {vid:vid, time:0, status:1}
+        socket.broadcast.emit('clientVideoChange', vid)
       })
 
       socket.on('statusChanged', (status)=>{
-        globalStatus = status;
         socket.broadcast.emit('handleStatus', status);
       })
 
     });
+
+    
 
   }
 

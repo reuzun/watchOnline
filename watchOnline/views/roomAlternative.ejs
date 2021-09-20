@@ -16,9 +16,18 @@
     </div>
 
     <script>
-        var imp = null;
-        const socket = io(`http://localhost:55556`); // Our server.js portnumber
+        var myRoomId = '<%=roomId%>';
+        const socket = io.connect(`http://localhost:55556/room/${myRoomId}`,{auth:{roomId:myRoomId}}); // Our server.js portnumber
         let currentVideoId = "<%=videoId%>"
+        
+
+        /*socket.on('connect', ()=>{
+            console.log('connected!');
+
+        })
+        socket.on('message', (msg) => {
+            console.log(msg)
+        })*/
 
         var tag = document.createElement('script');
 
@@ -65,13 +74,15 @@
         function onPlayerReady(event) {
             setTimeout(() => event.target.playVideo(), 100 );
             setInterval(() => {
-                socket.emit("currentTime", player.getCurrentTime(), currentVideoId)
+                socket.emit("currentTime", player.getCurrentTime(), currentVideoId, myRoomId)
             }, 250)
-            socket.emit('init');
+            socket.emit('init', myRoomId);
         }
 
 
         socket.on('seek', (time, status, vidId) => {
+            //player.loadVideoById(vidId, time);
+            window.history.pushState("", "", vidId);
             player.seekTo(time);
             if (status == 0) {
                 player.pauseVideo();
@@ -80,10 +91,9 @@
                 player.playVideo();
             }
             currentVideoId = vidId;
-
         })
 
-        socket.on('clientVideoChange', (link) => {
+        socket.on('clientVideoChange', (link, time) => {
             player.loadVideoById(link);
             window.history.pushState("", "", link);
         })
@@ -95,8 +105,9 @@
             let submit = document.getElementById("submit");
             link = link.substring(link.lastIndexOf("=") + 1, link.length)
             currentVideoId = link;
-            socket.emit('videoChange', link);
+            socket.emit('videoChange', link, myRoomId);
             player.loadVideoById(link);
+            window.history.pushState("", "", link);
         }
 
     </script>
