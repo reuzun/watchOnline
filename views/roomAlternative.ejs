@@ -17,7 +17,7 @@
 
     <script>
         var myRoomId = '<%=roomId%>';
-        const socket = io.connect(`http://localhost:55556/room/${myRoomId}`,{auth:{roomId:myRoomId}}); // Our server.js portnumber
+        const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`,{auth:{roomId:myRoomId}}); // Our server.js portnumber
         let currentVideoId = "<%=videoId%>"
         
 

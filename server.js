@@ -9,7 +9,8 @@ const io = new Server(server);
 const dotenv = require('dotenv');
 const { Socket } = require('dgram');
 dotenv.config();
-const API_SERVER_PORT = process.env.PORT
+const API_SERVER_PORT = process.env.PORT || 3000;
+const URL = process.env.URL || `http://localhost:${API_SERVER_PORT}/`
 
 availableRooms = [];
 
@@ -50,6 +51,8 @@ app.post('/room/:roomId/video/:videoId', (req, res) => {
   res.render('roomAlternative.ejs', {
     roomId: `${req.body.room}`,
     videoId: `${roomDatas[req.body.room] ? roomDatas[req.body.room].vid : CvideoId}`,
+    PORT: API_SERVER_PORT,
+    URL: URL,
   });
   // Creating new Room
   if (!availableRooms.includes(req.body.room)) {
