@@ -10,7 +10,7 @@ const dotenv = require('dotenv');
 const { Socket } = require('dgram');
 dotenv.config();
 const API_SERVER_PORT = process.env.PORT || 3000;
-const URL = process.env.URL || `http://localhost:${API_SERVER_PORT}/`
+const URL = process.env.URL || `http://localhost:${API_SERVER_PORT}`
 
 availableRooms = [];
 
