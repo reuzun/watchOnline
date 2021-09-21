@@ -61,18 +61,28 @@ app.post('/room/:roomId/video/:videoId', (req, res) => {
      
       socket.on('currentTime', (time, vid, roomId) => {
           roomDatas[roomId] = {vid:vid, time:time, status:1} // An if may required
-      })
+          console.log(roomDatas[roomId].time)
+        });
 
       socket.on('videoChange', (vid, roomId) => {
         roomDatas[roomId] = {vid:vid, time:0, status:1}
         socket.broadcast.emit('clientVideoChange', vid)
-      })
+      });
 
-      socket.on('statusChanged', (status)=>{
-      })
+
 
       socket.on('statusChanged', (status)=>{
         socket.broadcast.emit('handleStatus', status);
+      });
+
+      socket.on('clientSeek', (time)=>{
+        socket.broadcast.emit('timeChanged', (time));
+      });
+
+
+      socket.on('getTime', (rid, uid)=>{
+        console.log('time'); console.log(roomDatas[rid]?roomDatas[rid].time:'undefined!' )
+        socket.emit('comingTime', uid, roomDatas[rid].time)
       })
 
 
@@ -97,6 +107,14 @@ app.post('/room/:roomId/video/:videoId', (req, res) => {
 
       socket.on('statusChanged', (status)=>{
         socket.broadcast.emit('handleStatus', status);
+      })
+
+      socket.on('clientSeek', (time)=>{
+        socket.broadcast.emit('timeChanged', (time));
+      });
+
+      socket.on('getTime', (rid, uid)=>{
+        socket.emit('comingTime', uid, roomDatas[rid].time)
       })
 
     });

@@ -17,9 +17,9 @@
 
     <script>
         var myRoomId = '<%=roomId%>';
-        const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`,{auth:{roomId:myRoomId}}); // Our server.js portnumber
+        const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`, { auth: { roomId: myRoomId } }); // Our server.js portnumber
         let currentVideoId = "<%=videoId%>"
-        
+        let userId = ( Math.random()*2222222 ) | 0;
 
         /*socket.on('connect', ()=>{
             console.log('connected!');
@@ -34,7 +34,7 @@
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
+        var bool_flag_1 = false;
 
         var player;
         function onYouTubeIframeAPIReady() {
@@ -48,16 +48,40 @@
                 events: {
                     'onReady': onPlayerReady,
                     'onStateChange': (event) => {
-                        if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED ||  event.data == YT.PlayerState.BUFFERING) {
-                            socket.emit('statusChanged', 1)
+                        if(is_coming_time){
+                            is_coming_time = false;
+
+                            return;
+                        }
+                        console.log('mytime')
+                        console.log(player.getCurrentTime());
+                        if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED || event.data == YT.PlayerState.BUFFERING) {
+                            console.log('başlattın')
+                            socket.emit('statusChanged', 1, myRoomId)
+                            /*if(bool_flag_1)
+                                socket.emit('getTime', myRoomId, userId)*/
                         }
                         else {
-                            socket.emit('statusChanged', 0);
+                            socket.emit('statusChanged', 0, myRoomId);
+                        }
+                        if (Math.abs(lastTime - player.getCurrentTime()) > 2) {
+                            console.log('Seeked!')
+                            console.log(player.getPlayerState());
+                            let time = player.getCurrentTime();
+                            socket.emit('clientSeek', time);
+                            lastTime = time;
                         }
                     }
                 }
             });
         }
+
+        var is_coming_time = false;
+        socket.on('comingTime', (uid, time)=>{
+            if(uid != userId)return;
+            is_coming_time = true;
+            player.seekTo(time, true);
+        })
 
         socket.on('handleStatus', (status) => {
             if (status == 0) {
@@ -70,11 +94,15 @@
 
 
 
-
+        var lastTime = 0;
         function onPlayerReady(event) {
-            setTimeout(() => event.target.playVideo(), 100 );
+            setTimeout(() => event.target.playVideo(), 100);
             setInterval(() => {
-                socket.emit("currentTime", player.getCurrentTime(), currentVideoId, myRoomId)
+                if(player.getPlayerState()==2)return;
+                let time = player.getCurrentTime();
+                socket.emit("currentTime", time, currentVideoId, myRoomId)
+                bool_flag_1 = true;
+                lastTime = time;
             }, 250)
             socket.emit('init', myRoomId);
         }
@@ -96,6 +124,11 @@
         socket.on('clientVideoChange', (link, time) => {
             player.loadVideoById(link);
             window.history.pushState("", "", link);
+        })
+
+        socket.on('timeChanged', (time) => {
+            console.log('Time change isteği alındı!')
+            player.seekTo(time);
         })
 
 
