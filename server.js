@@ -34,7 +34,9 @@ app.post('/room', (req, res) => {
 import Video from "./model/video.js";
 let firstVideo = new Video('9VksF2IXlQw', 0, 1);
 console.log(firstVideo)*/
-var CvideoId = firstVideo.videoId;
+//var CvideoId = firstVideo.videoId;
+
+var CvideoId = '9VksF2IXlQw';
 
 let availableRooms = [];
 let roomDatas = {}; // Uses key as roomId and an object value as datas including videoId
