@@ -14,8 +14,13 @@
     <div id="videoContainer">
         <div id="player"></div>
     </div>
+    
+    <script type="module">
 
-    <script>
+        import Video from '/./model/video.js';
+        console.log(new Video())
+
+        
         var myRoomId = '<%=roomId%>';
         const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`, { auth: { roomId: myRoomId } }); // Our server.js portnumber
         let currentVideoId = "<%=videoId%>"
@@ -37,7 +42,7 @@
         var bool_flag_1 = false;
 
         var player;
-        function onYouTubeIframeAPIReady() {
+        window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
                 height: '390',
                 width: '640',

@@ -2,6 +2,7 @@
   "name": "watchOnline-server",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "dependencies": {
     "dotenv": "^10.0.0",
     "ejs": "^3.1.6",

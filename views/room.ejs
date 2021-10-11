@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Room: <%=roomId%>
+    </title>
+    <script>
+
+        let chat_message = (userId, message) => {
+            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span>";
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setInterval(() => {
+                document.getElementById('clock').innerHTML = new Date().toTimeString().slice(0, 8)
+            }, 1000);
+            chat_message('Admin', 'This is chat! Welcome :)')
+        });
+    </script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        #player {
+            min-width: 900px;
+            min-height: 450px;
+            background-color: green;
+        }
+
+        .leftside {
+            float: left;
+            margin-top: 3%;
+        }
+
+        .rightside {
+            float: right;
+        }
+
+        #submit {
+            min-width: 150px;
+        }
+
+        .cont {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        #chat {
+            min-width: 400px;
+            max-width: 400px;
+            min-height: 470px;
+            max-height: 470px;
+            resize: none;
+        }
+
+        table {
+            width: 10% !important;
+        }
+
+        #rightpart {
+            margin-top: 0.75rem;
+
+        }
+
+        #leftpart {}
+
+        #middlepart {
+            margin-top: 0.75rem;
+        }
+
+        nav {
+            display: block;
+        }
+
+        #brandname,
+        #quote,
+        #clock {
+            vertical-align: sub;
+            font-size: 1, 25rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #chat>*::selection,
+        .chatuser::selection {
+            background-color: rgb(255, 246, 151);
+            text-shadow: 1px 1px 4px #113706;
+        }
+
+        *::selection {
+            background-color: rgb(255, 246, 151);
+            text-shadow: 1px 1px 4px #113706;
+        }
+
+        .noselect {
+            -webkit-touch-callout: none;
+            /* iOS Safari */
+            -webkit-user-select: none;
+            /* Safari */
+            -khtml-user-select: none;
+            /* Konqueror HTML */
+            -moz-user-select: none;
+            /* Old versions of Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+            user-select: none;
+            /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+        }
+
+        table {
+            min-width: 350px;
+            max-width: 350px;
+            table-layout: fixed !important;
+        }
+
+        th,
+        td {
+            white-space: nowrap !important;
+            overflow: auto !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        #playlist>tbody>tr>td:nth-child(1) {
+            max-width: 11%;
+        }
+    </style>
+</head>
+<html>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="cont" style="min-width: 100%;justify-content: space-between;">
+            <a class="navbar-brand" href="https://github.com/reuzun/watchOnline-Nodejs" target="_blank">
+                <img src="/output-onlinepngtools.png" width="40" height="40" class="d-inline-block align-top"
+                    alt="Logo">
+                <span id="brandname">
+                    WatchOnline/<%=roomId%>
+                </span>
+            </a>
+            <span id="quote" style="color:white;font-size: 20px;padding-right: 7%;">
+                “e^(iπ)+1 = 0”
+                ― Leonhard Euler
+            </span>
+            <span id="clock" class="noselect" style="color:white;font-size: 20px;">00.00.00</span>
+        </div>
+
+    </nav>
+
+    <div class="cont">
+        <!-- Left part -- Playlist Section -- -->
+        <div id="leftpart">
+            <fieldset>
+                <legend>Playlist</legend>
+                <table class="table" id="playlist">
+                    <thead>
+                        <tr>
+                            <th style="width: 11%;">#</th>
+                            <th style="width: 66%;">Video</th>
+                            <th style="width: 23%;">Action</th>
+                            <!--<th scope="col"><button>Hide</button></th>-->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Video Link #1</td>
+                            <td><button>▲</button><button>🗵</button></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Video Link Longer #1</td>
+                            <td><button>▲</button><button>🗵</button></td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </fieldset>
+        </div>
+        <!-- Middle part -- Player Section -- -->
+        <div id="middlepart">
+            <div class="cont rightside" style="flex-direction: column;">
+                <div class="input-group mb-3">
+                    <input id="link" type="text" class="form-control" placeholder="Video Link" aria-label="Video Link"
+                        aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button id="submit" class="btn btn-dark" type="button">Play Video</button>
+                        <button id="submitqueue" class="btn btn-light btn-outline-dark" type="button">Queue
+                            Video</button>
+                    </div>
+                </div>
+
+                <div id="videoContainer">
+                    <div id="player"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Right part -- Chat Section -- -->
+        <div id="rightpart">
+            <div class="cont" style="flex-direction: column;">
+                <div id="chat" readonly class="form-control"></div>
+                <div class="input-group mb-3">
+                    <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
+                        aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button id="chatsubmit" class="btn btn-dark" type="button">Send</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Client-Server communication script -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module">
+
+        /*import Video from '/./model/video.js';
+        console.log(new Video())*/
+
+
+        var myRoomId = '<%=roomId%>';
+        const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`, { auth: { roomId: myRoomId } }); // Our server.js portnumber
+        let currentVideoId = "<%=videoId%>"
+        let userId = (Math.random() * 2222222) | 0;
+
+
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        var bool_flag_1 = false;
+
+        var player;
+        window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: "<%=videoId%>",
+                playerVars: {
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': (event) => {
+                        if (is_coming_time) {
+                            is_coming_time = false;
+
+                            return;
+                        }
+                        if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED || event.data == YT.PlayerState.BUFFERING) {
+                            socket.emit('statusChanged', 1, myRoomId)
+                            /*if(bool_flag_1)
+                                socket.emit('getTime', myRoomId, userId)*/
+                        }
+                        else {
+                            socket.emit('statusChanged', 0, myRoomId);
+                        }
+                        if (Math.abs(lastTime - player.getCurrentTime()) > 2) {
+                            let time = player.getCurrentTime();
+                            socket.emit('clientSeek', time);
+                            lastTime = time;
+                        }
+                    }
+                }
+            });
+        }
+
+        var is_coming_time = false;
+        socket.on('comingTime', (uid, time) => {
+            if (uid != userId) return;
+            is_coming_time = true;
+            player.seekTo(time, true);
+        })
+
+        socket.on('handleStatus', (status) => {
+            if (status == 0) {
+                player.pauseVideo();
+            }
+            else if (status == 1) {
+                player.playVideo();
+            }
+        })
+
+
+
+        var lastTime = 0;
+        function onPlayerReady(event) {
+            setTimeout(() => event.target.playVideo(), 100);
+            setInterval(() => {
+                if (player.getPlayerState() == 2) return;
+                let time = player.getCurrentTime();
+                socket.emit("currentTime", time, currentVideoId, myRoomId)
+                bool_flag_1 = true;
+                lastTime = time;
+            }, 250)
+            socket.emit('init', myRoomId);
+        }
+
+
+        socket.on('seek', (time, status, vidId) => {
+            //player.loadVideoById(vidId, time);
+            window.history.pushState("", "", vidId);
+            player.seekTo(time);
+            if (status == 0) {
+                player.pauseVideo();
+            }
+            else if (status == 1) {
+                player.playVideo();
+            }
+            currentVideoId = vidId;
+        })
+
+        socket.on('clientVideoChange', (link, time) => {
+            player.loadVideoById(link);
+            window.history.pushState("", "", link);
+        })
+
+        socket.on('timeChanged', (time) => {
+            player.seekTo(time);
+        })
+
+
+
+        submit.onclick = () => {
+            let link = document.getElementById("link").value;
+            let submit = document.getElementById("submit");
+            link = link.substring(link.lastIndexOf("=") + 1, link.length)
+            currentVideoId = link;
+            socket.emit('videoChange', link, myRoomId);
+            player.loadVideoById(link);
+            window.history.pushState("", "", link);
+        }
+
+    </script>
+
+
+</body>
+
+</html>
