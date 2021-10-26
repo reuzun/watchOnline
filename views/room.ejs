@@ -6,7 +6,7 @@
     <script>
 
         let chat_message = (userId, message) => {
-            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span>";
+            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -49,6 +49,8 @@
             min-height: 470px;
             max-height: 470px;
             resize: none;
+            word-break: break-all;
+            overflow: auto;
         }
 
         table {
@@ -125,6 +127,8 @@
         #playlist>tbody>tr>td:nth-child(1) {
             max-width: 11%;
         }
+
+
     </style>
 </head>
 <html>
@@ -219,6 +223,11 @@
         /*import Video from '/./model/video.js';
         console.log(new Video())*/
 
+        function scrollToBottom (id) {
+                var div = document.getElementById(id);
+                div.scrollTop = div.scrollHeight - div.clientHeight;
+            }
+
 
         var myRoomId = '<%=roomId%>';
         const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`, { auth: { roomId: myRoomId } }); // Our server.js portnumber
@@ -300,7 +309,7 @@
         }
 
 
-        socket.on('seek', (time, status, vidId) => {
+        socket.on('seek', (time, status, vidId, text) => {
             //player.loadVideoById(vidId, time);
             window.history.pushState("", "", vidId);
             player.seekTo(time);
@@ -311,6 +320,10 @@
                 player.playVideo();
             }
             currentVideoId = vidId;
+            document.getElementById('chat').innerHTML = text;
+            chat_message("System", `${userId} has joined the room!`)
+            socket.emit("message", document.getElementById('chat').innerHTML)
+            scrollToBottom("chat");
         })
 
         socket.on('clientVideoChange', (link, time) => {
@@ -322,7 +335,24 @@
             player.seekTo(time);
         })
 
+        let chat_message = (userId, message) => {
+            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
+        };
 
+        socket.on('newmessage', (text)=>{
+            document.getElementById('chat').innerHTML = text;
+            scrollToBottom("chat");
+        })
+
+
+        let chatSubmit = document.getElementById('chatsubmit');
+        
+        chatSubmit.onclick = () => {
+            let messageTxt = document.getElementById('message').value;
+            chat_message(userId, messageTxt);scrollToBottom("chat");
+            socket.emit("message", document.getElementById('chat').innerHTML)
+            messageTxt = document.getElementById('message').value = "";
+        }
 
         submit.onclick = () => {
             let link = document.getElementById("link").value;

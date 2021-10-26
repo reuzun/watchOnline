@@ -8,6 +8,7 @@ const io = new Server(server);
 // Setting env variables.
 import { config } from 'dotenv';
 import { Socket } from 'dgram';
+
 config();
 const API_SERVER_PORT = process.env.PORT || 3000;
 const URL = process.env.URL || `http://localhost:${API_SERVER_PORT}`
@@ -35,14 +36,15 @@ import Video from "./model/video.js";
 let firstVideo = new Video('9VksF2IXlQw', 0, 1);
 console.log(firstVideo)*/
 //var CvideoId = firstVideo.videoId;
+import Chat from './model/chat.js';
 
 var CvideoId = '9VksF2IXlQw';
 
 let availableRooms = [];
 let roomDatas = {}; // Uses key as roomId and an object value as datas including videoId
+let roomChatDatas = {}; // Uses key as roomId and an object value as datas including videoId
 
 app.use('/room/:roomId/video/:videoId', (req, res) => {
-
 
   res.render('room.ejs', {
     roomId: `${req.params.roomId}`,
@@ -52,8 +54,12 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
   });
   // Creating new Room
   if (!availableRooms.includes(req.params.roomId)) {
+    
 
     io.of(`/room/${req.params.roomId}`).on('connection', (socket) => {
+
+      
+
 
       socket.on('currentTime', (time, vid, roomId) => {
         roomDatas[roomId] = { vid: vid, time: time, status: 1 } // An if may required
@@ -77,6 +83,11 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
 
       socket.on('getTime', (rid, uid) => {
         socket.emit('comingTime', uid, roomDatas[rid].time)
+      })
+
+      socket.on('message', (text) =>{
+        socket.broadcast.emit('newmessage', text)
+        roomChatDatas[req.params.roomId] = text;
       })
 
 
@@ -87,15 +98,15 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
     io.of(`/room/${req.params.roomId}`).on('connection', (socket) => {
 
       socket.on('init', (roomId) => {
-        socket.emit('seek', roomDatas[roomId].time, roomDatas[roomId].status, roomDatas[roomId].vid);
+        socket.emit('seek', roomDatas[roomId].time, roomDatas[roomId].status, roomDatas[roomId].vid, roomChatDatas[roomId]);
       });
 
       socket.on('currentTime', (time, vid, roomId) => {
-        roomDatas[roomId] = { vid: vid, time: time, status: 1 } // An if may required
+        roomDatas[roomId] = { vid: vid, time: time, status: 1} // An if may required
       })
 
       socket.on('videoChange', (vid, roomId) => {
-        roomDatas[roomId] = { vid: vid, time: 0, status: 1 }
+        roomDatas[roomId] = { vid: vid, time: 0, status: 1}
         socket.broadcast.emit('clientVideoChange', vid)
       })
 
@@ -109,6 +120,11 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
 
       socket.on('getTime', (rid, uid) => {
         socket.emit('comingTime', uid, roomDatas[rid].time)
+      })
+
+      socket.on('message', (text) =>{
+        socket.broadcast.emit('newmessage', text)
+        roomChatDatas[req.params.roomId] = text;
       })
 
     });
