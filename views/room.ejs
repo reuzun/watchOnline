@@ -62,7 +62,10 @@
 
         }
 
-        #leftpart {}
+        #leftpart {
+            max-height: 550px;
+            overflow: auto;
+        }
 
         #middlepart {
             margin-top: 0.75rem;
@@ -120,15 +123,16 @@
             overflow: auto !important;
         }
 
-        ::-webkit-scrollbar {
+        #leftpart>*::-webkit-scrollbar,
+        tr::-webkit-scrollbar,
+        td::-webkit-scrollbar,
+        th::-webkit-scrollbar {
             display: none;
         }
 
         #playlist>tbody>tr>td:nth-child(1) {
             max-width: 11%;
         }
-
-
     </style>
 </head>
 <html>
@@ -157,27 +161,15 @@
         <div id="leftpart">
             <fieldset>
                 <legend>Playlist</legend>
-                <table class="table" id="playlist">
+                <table class="table">
                     <thead>
                         <tr>
                             <th style="width: 11%;">#</th>
-                            <th style="width: 66%;">Video</th>
-                            <th style="width: 23%;">Action</th>
+                            <th style="width: 89%;">Video</th>
                             <!--<th scope="col"><button>Hide</button></th>-->
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>Video Link #1</td>
-                            <td><button>▲</button><button>🗵</button></td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Video Link Longer #1</td>
-                            <td><button>▲</button><button>🗵</button></td>
-                        </tr>
-
+                    <tbody id="playlist">
                     </tbody>
                 </table>
             </fieldset>
@@ -223,16 +215,16 @@
         /*import Video from '/./model/video.js';
         console.log(new Video())*/
 
-        function scrollToBottom (id) {
-                var div = document.getElementById(id);
-                div.scrollTop = div.scrollHeight - div.clientHeight;
-            }
+        function scrollToBottom(id) {
+            var div = document.getElementById(id);
+            div.scrollTop = div.scrollHeight - div.clientHeight;
+        }
 
 
         var myRoomId = '<%=roomId%>';
         const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`, { auth: { roomId: myRoomId } }); // Our server.js portnumber
         let currentVideoId = "<%=videoId%>"
-        let userId = (Math.random() * 2222222) | 0;
+        let userId = (100000 + (Math.random() * 999999)) | 0;
 
 
         var tag = document.createElement('script');
@@ -263,6 +255,9 @@
                             socket.emit('statusChanged', 1, myRoomId)
                             /*if(bool_flag_1)
                                 socket.emit('getTime', myRoomId, userId)*/
+                        }
+                        else if (event.data == YT.PlayerState.ENDED) {
+                            socket.emit('videoended')
                         }
                         else {
                             socket.emit('statusChanged', 0, myRoomId);
@@ -308,8 +303,11 @@
             socket.emit('init', myRoomId);
         }
 
+        let playlistTbody = document.getElementById('playlist');
 
-        socket.on('seek', (time, status, vidId, text) => {
+        // Set the playlist
+        var playlist = [];
+        socket.on('seek', (time, status, vidId, text, playlistTxt, playlistData) => {
             //player.loadVideoById(vidId, time);
             window.history.pushState("", "", vidId);
             player.seekTo(time);
@@ -324,6 +322,9 @@
             chat_message("System", `${userId} has joined the room!`)
             socket.emit("message", document.getElementById('chat').innerHTML)
             scrollToBottom("chat");
+
+            playlistTbody.innerHTML = playlistTxt;
+            playlist = playlistData;
         })
 
         socket.on('clientVideoChange', (link, time) => {
@@ -335,25 +336,68 @@
             player.seekTo(time);
         })
 
+        socket.on('videoend', (link) => {
+            //console.log(link)
+            link = link.substring(link.lastIndexOf("=") + 1, link.length)
+            player.loadVideoById(link);
+            let playlist = document.getElementById('playlist');
+            playlist.removeChild(playlist.getElementsByTagName('tr')[0]);
+            window.history.pushState("", "", link);
+        })
+
         let chat_message = (userId, message) => {
             document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
         };
 
-        socket.on('newmessage', (text)=>{
+        socket.on('newmessage', (text) => {
             document.getElementById('chat').innerHTML = text;
             scrollToBottom("chat");
         })
 
+        let getVideoName = async (link) => {
+            let ans = "";
+            await fetch(`https://www.youtube.com/oembed?url=${link}&format=json`)
+                .then(response => response.json())
+                .then(data => ans = data.title);
+            return ans;
+        }
 
+        let addTr = (elem, no, link) => {
+            elem.innerHTML += `<tr>
+                            <td>${no}</td>
+                            <td>${link}</td>
+                            
+                        </tr>`;
+        };
+        let queueBtn = document.getElementById('submitqueue');
+        queueBtn.onclick = async () => {
+            let link = document.getElementById("link").value;
+            playlist.push(link);
+            let videoName = await getVideoName(link);
+            //console.log("code:370" + videoName)
+            addTr(playlistTbody, "->", videoName)
+            socket.emit('queue', playlistTbody.innerHTML, playlist, link);
+        };
+
+        socket.on('queued', (playlistcome, PLAYLIST) => {
+
+            playlist = PLAYLIST;
+            //let videoName = await getVideoName(playlist[playlist.length-1]);
+            playlistTbody.innerHTML = playlistcome;
+            //addTr(playlistTbody, playlist.length, videoName)
+        })
+
+        // Set the chat
         let chatSubmit = document.getElementById('chatsubmit');
-        
+
         chatSubmit.onclick = () => {
             let messageTxt = document.getElementById('message').value;
-            chat_message(userId, messageTxt);scrollToBottom("chat");
+            chat_message(userId, messageTxt); scrollToBottom("chat");
             socket.emit("message", document.getElementById('chat').innerHTML)
             messageTxt = document.getElementById('message').value = "";
         }
 
+        // Set the new Video
         submit.onclick = () => {
             let link = document.getElementById("link").value;
             let submit = document.getElementById("submit");
