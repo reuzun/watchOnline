@@ -196,6 +196,10 @@
         <div id="rightpart">
             <div class="cont" style="flex-direction: column;">
                 <div id="chat" readonly class="form-control"></div>
+                <div id="peoplelist"
+                    style="display: none;position: absolute;overflow: auto;max-width: 400px;min-width: 400px;max-height: 300px;">
+                </div>
+                <button id="people" style="float:right">People</button>
                 <div class="input-group mb-3">
                     <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
                         aria-describedby="basic-addon2">
@@ -224,8 +228,13 @@
         var myRoomId = '<%=roomId%>';
         const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`, { auth: { roomId: myRoomId } }); // Our server.js portnumber
         let currentVideoId = "<%=videoId%>"
-        let userId = (100000 + (Math.random() * 999999)) | 0;
-
+        //let userId = (100000 + (Math.random() * 999999)) | 0;
+        socket.emit('myId');
+        let userId = "------";
+        socket.on('Id', (id) => {
+            if (userId == "------")
+                userId = id;
+        });
 
         var tag = document.createElement('script');
 
@@ -257,7 +266,7 @@
                                 socket.emit('getTime', myRoomId, userId)*/
                         }
                         else if (event.data == YT.PlayerState.ENDED) {
-                            socket.emit('videoended')
+                            socket.emit('videoended');
                         }
                         else {
                             socket.emit('statusChanged', 0, myRoomId);
@@ -306,7 +315,7 @@
         let playlistTbody = document.getElementById('playlist');
 
         // Set the playlist
-        var playlist = [];
+        var playlistData_client = [];
         socket.on('seek', (time, status, vidId, text, playlistTxt, playlistData) => {
             //player.loadVideoById(vidId, time);
             window.history.pushState("", "", vidId);
@@ -318,13 +327,15 @@
                 player.playVideo();
             }
             currentVideoId = vidId;
+            //document.getElementById('chat').innerHTML += text == null ? "" : text;
             document.getElementById('chat').innerHTML = text;
             chat_message("System", `${userId} has joined the room!`)
             socket.emit("message", document.getElementById('chat').innerHTML)
             scrollToBottom("chat");
 
             playlistTbody.innerHTML = playlistTxt;
-            playlist = playlistData;
+            playlistData_client = playlistData;
+            //console.log(playlistData_client)
         })
 
         socket.on('clientVideoChange', (link, time) => {
@@ -336,14 +347,21 @@
             player.seekTo(time);
         })
 
-        socket.on('videoend', (link) => {
+        socket.on('videoend', (link, pl) => {
+            playlistData_client.shift();
+            //console.log("satır 351"); console.log(pl);
+            //playlist = pl;
             //console.log(link)
             link = link.substring(link.lastIndexOf("=") + 1, link.length)
+            currentVideoId = link;
             player.loadVideoById(link);
-            let playlist = document.getElementById('playlist');
-            playlist.removeChild(playlist.getElementsByTagName('tr')[0]);
+            let playlistElem = document.getElementById('playlist');
+            playlistElem.removeChild(playlistElem.getElementsByTagName('tr')[0]);
+            socket.emit("playlisthtmldata", playlistElem.innerHTML);
             window.history.pushState("", "", link);
         })
+
+
 
         let chat_message = (userId, message) => {
             document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
@@ -372,16 +390,17 @@
         let queueBtn = document.getElementById('submitqueue');
         queueBtn.onclick = async () => {
             let link = document.getElementById("link").value;
-            playlist.push(link);
+            playlistData_client.push(link);
             let videoName = await getVideoName(link);
             //console.log("code:370" + videoName)
             addTr(playlistTbody, "->", videoName)
-            socket.emit('queue', playlistTbody.innerHTML, playlist, link);
+            socket.emit('queue', playlistTbody.innerHTML, playlistData_client, link);
         };
 
         socket.on('queued', (playlistcome, PLAYLIST) => {
-
-            playlist = PLAYLIST;
+            playlistData_client = PLAYLIST;
+            //playlist = PLAYLIST;
+            //console.log(playlist)
             //let videoName = await getVideoName(playlist[playlist.length-1]);
             playlistTbody.innerHTML = playlistcome;
             //addTr(playlistTbody, playlist.length, videoName)
@@ -407,6 +426,25 @@
             player.loadVideoById(link);
             window.history.pushState("", "", link);
         }
+
+        let roomPeople = [];
+        let peopleBtn = document.getElementById("people");
+        peopleBtn.onclick = () => {
+            socket.emit('people');
+            let showPFunc = () => {
+                let peopleStr = "";
+                for (let i = 0; i < roomPeople.length; i++)
+                    peopleStr += roomPeople[i] + "<br>";
+                let peopleLi = document.getElementById('peoplelist');
+                peopleLi.innerHTML = peopleStr;
+                peopleLi.style.display = peopleLi.style.display == "block" ? "none" : "block";
+                peopleLi.style.backgroundColor = "yellow"
+            }
+            setTimeout(showPFunc, 500);
+        };
+        socket.on("showpeople", (users) => {
+            roomPeople = users;
+        });
 
     </script>
 

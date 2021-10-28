@@ -46,8 +46,11 @@ let roomDatas = {}; // Uses key as roomId and an object value as datas including
 let roomChatDatas = {};
 let roomPlaylistDatas = {};
 let roomPlaylistText = {};
+let roomPeople = {};
+let roomOldPeople = {};
 
 app.use('/room/:roomId/video/:videoId', (req, res) => {
+
 
     res.render('room.ejs', {
         roomId: `${req.params.roomId}`,
@@ -55,34 +58,60 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
         PORT: API_SERVER_PORT,
         URL: URL,
     });
+
+    if (flag_videoend[req.params.roomId] == undefined)
+        flag_videoend[req.params.roomId] = false;
+    if (roomPeople[req.params.roomId] == undefined) {
+        roomPeople[req.params.roomId] = [];
+    }
+    if (roomOldPeople[req.params.roomId] == undefined) {
+        roomOldPeople[req.params.roomId] = [];
+    }
+    let username = createRandomUsername();
     // Creating new Room
     if (!availableRooms.includes(req.params.roomId)) {
-
         io.of(`/room/${req.params.roomId}`).on('connection', (socket) => {
+            socket.userId = username;
+
+
+            if (roomPeople[req.params.roomId] && !roomPeople[req.params.roomId].includes(socket.userId) && !roomOldPeople[req.params.roomId].includes(socket.userId)) {
+                roomPeople[req.params.roomId].push(socket.userId);
+            }
 
             handleSocket(socket, req, res)
 
         });
-
         availableRooms.push(req.params.roomId)
     } else {
         io.of(`/room/${req.params.roomId}`).on('connection', (socket) => {
+            socket.userId = username;
+
+            if (roomPeople[req.params.roomId] && !roomPeople[req.params.roomId].includes(socket.userId) && !roomOldPeople[req.params.roomId].includes(socket.userId)) {
+                //console.log('my id : ', socket.userId);
+                roomPeople[req.params.roomId].push(socket.userId);
+            }
+
+            //console.log(roomPeople[req.params.roomId])
+
 
             socket.on('init', (roomId) => {
-                //console.log(roomPlaylistText[req.params.roomId])
-                socket.emit('seek', roomDatas[roomId].time, roomDatas[roomId].status, roomDatas[roomId].vid, roomChatDatas[roomId], roomPlaylistText[req.params.roomId], roomPlaylistDatas[req.params.roomId]);
+                socket.emit('seek', roomDatas[req.params.roomId].time, roomDatas[req.params.roomId].status, roomDatas[req.params.roomId].vid, roomChatDatas[req.params.roomId], roomPlaylistText[req.params.roomId], roomPlaylistDatas[req.params.roomId] == null ? [] : roomPlaylistDatas[req.params.roomId]);
             });
             handleSocket(socket, req, res);
 
         });
 
-
-
     }
 
 });
 
+let createRandomUsername = () => {
+    return (100000 + (Math.random() * 999999)) | 0;
+};
+
 let handleSocket = (socket, req, res) => {
+
+
     socket.on('currentTime', (time, vid, roomId) => {
         roomDatas[roomId] = { vid: vid, time: time, status: 1 } // An if may required
     })
@@ -110,10 +139,7 @@ let handleSocket = (socket, req, res) => {
     })
 
     socket.on('queue', (playlist, PLAYLIST, link) => {
-        /*if(flag_videoqueue){
-            setTimeout(()=>{flag_videoqueue = false;},2000)
-            return;
-        }*/
+
         if (!roomPlaylistText[req.params.roomId]) {
             roomPlaylistText[req.params.roomId] = [];
         }
@@ -122,27 +148,77 @@ let handleSocket = (socket, req, res) => {
             roomPlaylistDatas[req.params.roomId] = [];
         }
         roomPlaylistDatas[req.params.roomId] = PLAYLIST;
+        //console.log(roomPlaylistDatas[req.params.roomId])
         socket.broadcast.emit('queued', playlist, roomPlaylistDatas[req.params.roomId])
 
-        //flag_videoqueue = true;
-        //console.log(roomPlaylistDatas[req.params.roomId])
     })
 
     socket.on('videoended', () => {
-        if (flag_videoend) {
-            setTimeout(() => { flag_videoend = false;/*console.log(flag)*/ }, 2000)
+        if (flag_videoend[req.params.roomId]) {
+            setTimeout(() => { flag_videoend[req.params.roomId] = false; }, 2000)
             return;
         }
-        //socket.broadcast.emit("videoend", roomPlaylistDatas[req.params.roomId].pop());
-        //console.log(roomPlaylistDatas[req.params.roomId])
-        io.of(`/room/${req.params.roomId}`).emit("videoend", roomPlaylistDatas[req.params.roomId].shift());
-        flag_videoend = true;
-        //console.log(flag)
+
+        if (roomPlaylistDatas[req.params.roomId].length == 0) return;
+
+        //console.log()
+        let obj = roomPlaylistDatas[req.params.roomId].shift();
+        io.of(`/room/${req.params.roomId}`).emit("videoend", obj, roomPlaylistDatas[req.params.roomId]);
+
+        let ans = obj.substring(obj.lastIndexOf("=") + 1, obj.length);
+        roomDatas[req.params.roomId] = { vid: ans, time: 0, status: 1 }
+        socket.broadcast.emit('clientVideoChange', ans)
+
+
+
+        flag_videoend[req.params.roomId] = true;
     })
+
+    socket.on('playlisthtmldata', (data) => {
+        roomPlaylistText[req.params.roomId] = data;
+    });
+
+
+    socket.on('disconnect', () => {
+        roomPeople[req.params.roomId] = remove(roomPeople[req.params.roomId], socket.userId, req.params.roomId)
+
+        if (roomChatDatas[req.params.roomId].endsWith(chat_message("System", `${socket.userId} has left the room.`)))
+            return;
+
+        let str = roomChatDatas[req.params.roomId] + chat_message("System", `${socket.userId} has left the room.`);
+
+        socket.broadcast.emit('newmessage', str);
+        roomChatDatas[req.params.roomId] = str;
+
+
+    })
+
+    socket.on('people', () => {
+        io.of(`/room/${req.params.roomId}`).emit("showpeople", roomPeople[req.params.roomId]);
+    });
+
+    socket.on("myId", () => {
+        socket.emit("Id", socket.userId);
+    })
+
+};
+let chat_message = (userId, message) => {
+    return '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
 };
 
-var flag_videoend = false;
-var flag_videoqueue = false;
+function remove(arr, obj, roomId) {
+
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i].toString() == obj.toString()) {
+            roomOldPeople[roomId].push(arr.splice(i, 1)[0]);
+        }
+    }
+    return arr;
+}
+var flag_videoend = {};
+
+//var flag_videoend = false;
+
 
 
 server.listen(API_SERVER_PORT, () => {
