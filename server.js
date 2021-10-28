@@ -159,7 +159,12 @@ let handleSocket = (socket, req, res) => {
             return;
         }
 
-        if (roomPlaylistDatas[req.params.roomId].length == 0) return;
+        try{
+            if (roomPlaylistDatas[req.params.roomId].length == 0) return;
+        }catch(err){
+            return;
+            console.log("err:165")
+        }
 
         //console.log()
         let obj = roomPlaylistDatas[req.params.roomId].shift();
@@ -182,8 +187,13 @@ let handleSocket = (socket, req, res) => {
     socket.on('disconnect', () => {
         roomPeople[req.params.roomId] = remove(roomPeople[req.params.roomId], socket.userId, req.params.roomId)
 
-        if (roomChatDatas[req.params.roomId].endsWith(chat_message("System", `${socket.userId} has left the room.`)))
-            return;
+        try{
+            if (roomChatDatas[req.params.roomId].endsWith(chat_message("System", `${socket.userId} has left the room.`)))
+                return;
+        }catch(err){
+            console.log("err193")
+        }
+
 
         let str = roomChatDatas[req.params.roomId] + chat_message("System", `${socket.userId} has left the room.`);
 

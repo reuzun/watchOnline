@@ -133,6 +133,22 @@
         #playlist>tbody>tr>td:nth-child(1) {
             max-width: 11%;
         }
+        #peoplelist{
+            
+            position: absolute;
+            /*overflow: auto;*/
+            max-width: 200px;
+            min-width: 200px;
+            /*min-height: 386px;
+            max-height: 386px;*/
+            opacity: 1;
+            margin: 0px;
+            background-color: yellow;
+            border-radius: 75px;
+            padding: 70px;
+            margin-left: 4.63%;
+            transition: opacity 1.5s, background-color 1.5s, margin 2s, height 2s, border-radius 1.5s linear;
+        }
     </style>
 </head>
 <html>
@@ -197,9 +213,9 @@
             <div class="cont" style="flex-direction: column;">
                 <div id="chat" readonly class="form-control"></div>
                 <div id="peoplelist"
-                    style="display: none;position: absolute;overflow: auto;max-width: 400px;min-width: 400px;max-height: 300px;">
+                    style="position: absolute;opacity: 0;margin-top:-400px;float:right">
                 </div>
-                <button id="people" style="float:right">People</button>
+                <button id="people" style="float:right;z-index: 12312312;">People</button>
                 <div class="input-group mb-3">
                     <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
                         aria-describedby="basic-addon2">
@@ -427,6 +443,31 @@
             window.history.pushState("", "", link);
         }
 
+
+        function firstFunctionEver(peopleLi){
+            var element = document.querySelector("#peoplelist");
+            if (peopleLi.style.opacity==0) {
+                //console.log("if");
+                //element.style.visibility = 'visible';
+                element.style.opacity = '1';
+                peopleLi.style.backgroundColor = "yellow"
+                element.style.margin = "0px 0px 0px 195px"
+                element.style.height = "372px"
+                element.style.borderRadius = "75px"
+            }
+            else{
+                //console.log("else");
+                //element.style.visibility = "hidden";
+               
+                element.style.opacity = '0';
+                element.padding = '0';
+                peopleLi.style.backgroundColor = "green"
+                element.style.margin = "0px 0px -372px 195px "
+                element.style.height = "0px"
+                element.style.borderRadius = "-400px"
+            }
+        }
+
         let roomPeople = [];
         let peopleBtn = document.getElementById("people");
         peopleBtn.onclick = () => {
@@ -437,14 +478,18 @@
                     peopleStr += roomPeople[i] + "<br>";
                 let peopleLi = document.getElementById('peoplelist');
                 peopleLi.innerHTML = peopleStr;
+                firstFunctionEver(peopleLi);
+                /*peopleLi.style.opacity = peopleLi.style.opacity == 0 ? 1 : 0;
                 peopleLi.style.display = peopleLi.style.display == "block" ? "none" : "block";
-                peopleLi.style.backgroundColor = "yellow"
+                peopleLi.style.visibility = peopleLi.style.visibility == "visible" ? "hidden" : "visible";
+                peopleLi.style.backgroundColor = "yellow"*/
             }
             setTimeout(showPFunc, 500);
         };
         socket.on("showpeople", (users) => {
             roomPeople = users;
         });
+
 
     </script>
 
