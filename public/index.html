@@ -1,18 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome</title>
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setInterval(() => {
+                document.getElementById('clock').innerHTML = new Date().toTimeString().slice(0, 8)
+            }, 1000);
+        });
+    </script>
+    <style>
+        #player {
+            min-width: 900px;
+            min-height: 450px;
+            background-color: green;
+        }
+
+        .leftside {
+            float: left;
+            margin-top: 3%;
+        }
+
+        .rightside {
+            float: right;
+        }
+
+        #submit {
+            min-width: 150px;
+        }
+
+        .cont {
+            display: flex;
+            justify-content: space-around;
+            flex: 1;
+        }
+
+        #chat {
+            min-width: 400px;
+            max-width: 400px;
+            min-height: 470px;
+            max-height: 470px;
+            resize: none;
+            word-break: break-word;
+            overflow: scroll;
+            overflow-x: hidden !important;
+            ;
+        }
+
+        table {
+            width: 10% !important;
+        }
+
+        #rightpart {
+            margin-top: 0.75rem;
+
+        }
+
+        #leftpart {
+            max-height: 550px;
+            overflow: auto;
+        }
+
+        #middlepart {
+            margin-top: 0.75rem;
+        }
+
+        nav {
+            display: block;
+        }
+
+        #brandname,
+        #quote,
+        #clock {
+            vertical-align: sub;
+            font-size: 1, 25rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #chat>*::selection,
+        .chatuser::selection {
+            background-color: rgb(255, 246, 151);
+            text-shadow: 1px 1px 4px #113706;
+        }
+
+        *::selection {
+            background-color: rgb(255, 246, 151);
+            text-shadow: 1px 1px 4px #113706;
+        }
+
+        .noselect {
+            -webkit-touch-callout: none;
+            /* iOS Safari */
+            -webkit-user-select: none;
+            /* Safari */
+            -khtml-user-select: none;
+            /* Konqueror HTML */
+            -moz-user-select: none;
+            /* Old versions of Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+            user-select: none;
+            /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+        }
+
+        table {
+            min-width: 350px;
+            max-width: 350px;
+            table-layout: fixed !important;
+        }
+
+        th,
+        td {
+            white-space: nowrap !important;
+            overflow: auto !important;
+        }
+
+        #leftpart>*::-webkit-scrollbar,
+        tr::-webkit-scrollbar,
+        td::-webkit-scrollbar,
+        th::-webkit-scrollbar {
+            display: none;
+        }
+
+        #playlist>tbody>tr>td:nth-child(1) {
+            max-width: 11%;
+        }
+
+        #peoplelist {
+
+            position: absolute;
+            /*overflow: auto;*/
+            max-width: 200px;
+            min-width: 200px;
+            /*min-height: 386px;
+            max-height: 386px;*/
+            opacity: 1;
+            margin: 0px;
+            background-color: yellow;
+            border-radius: 75px;
+            padding: 70px;
+            margin-left: 4.63%;
+            transition: opacity 1.5s, background-color 1.5s, margin 2s, height 2s, border-radius 1.5s, z-index 2s linear;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            border-radius: 50px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 50px;
+
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+            scale: 1.2em;
+        }
+    </style>
 </head>
-<body>
-    <form method="POST" action="/room">
-        <label for="room">Enter room: </label>
-        <input id="room" name="room" type="text" autocomplete="false">
-        <input type="submit">
-    </form>
-    <p><b>Note:</b> If the room already exists then you will join that room.
-    Otherwise room will be created by you.</p>
+
+<body style="">
+
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="cont" style="min-width: 100%;justify-content: space-between;">
+            <a class="navbar-brand" href="https://github.com/reuzun/watchOnline-Nodejs" target="_blank">
+                <img src="/output-onlinepngtools.png" width="40" height="40" class="d-inline-block align-top"
+                    alt="Logo">
+                <span id="brandname">
+                    WatchOnline
+                </span>
+            </a>
+            <span id="quote" style="color:white;font-size: 20px;padding-right: 7%;">
+                “e^(iπ)+1 = 0”
+                ― Leonhard Euler
+            </span>
+            <span id="clock" class="noselect" style="color:white;font-size: 20px;">00.00.00</span>
+        </div>
+
+    </nav>
+
+    <div class="cont" style="padding-top: 12%;padding-right:50%;background: url(/bg.png) no-repeat ;background-size:100% 100%;">
+        <form method="POST" action="/room">
+            <label for="room" style="font-size: 60px;font-weight: bolder;font-family: Brush Script MT;">Room Id:</label>
+            <input required id="room" class="form-control" name="room" type="text" autocomplete="false" placeholder="Room Id">
+            <br>
+
+            <input class="btn btn-primary btn-lg btn-block" type="submit" value="Create Room">
+            <input class="btn btn-secondary btn-lg btn-block" type="submit" value="Join Room">
+        </form>
+    </div>
+
+
+    <div id="footer">
+        <footer class="bg-dark text-center text-white">
+            <!-- Grid container -->
+            <div class="container p-4 pb-0">
+                <!-- Section: Social media -->
+                <section class="mb-4">
+                    <!-- Facebook -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-facebook-f"></i></a>
+
+                    <!-- Twitter -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-twitter"></i></a>
+
+                    <!-- Google -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-google"></i></a>
+
+                    <!-- Instagram -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-instagram"></i></a>
+
+                    <!-- Linkedin -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-linkedin-in"></i></a>
+
+                    <!-- Github -->
+                    <a class="btn btn-outline-light btn-floating m-1"
+                        href="https://www.github.com/reuzun/watchOnline-Nodejs" target="_blank" role="button"><i
+                            class="fab fa-github"></i></a>
+                </section>
+                <!-- Section: Social media -->
+            </div>
+            <!-- Grid container -->
+
+            <!-- Copyright -->
+            <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+                © 2021 Copyright:
+                <span class="text-white" href="#">Rüştü Efe Uzun</span>
+            </div>
+            <!-- Copyright -->
+        </footer>
 </body>
+
 </html>

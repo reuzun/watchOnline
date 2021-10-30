@@ -13,9 +13,14 @@
             setInterval(() => {
                 document.getElementById('clock').innerHTML = new Date().toTimeString().slice(0, 8)
             }, 1000);
+
+
+
             chat_message('Admin', 'This is chat! Welcome :)')
         });
     </script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css">
+
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <style>
@@ -41,6 +46,7 @@
         .cont {
             display: flex;
             justify-content: space-around;
+            flex: 1;
         }
 
         #chat {
@@ -49,8 +55,10 @@
             min-height: 470px;
             max-height: 470px;
             resize: none;
-            word-break: break-all;
-            overflow: auto;
+            word-break: break-word;
+            overflow: scroll;
+            overflow-x: hidden !important;
+            ;
         }
 
         table {
@@ -133,8 +141,9 @@
         #playlist>tbody>tr>td:nth-child(1) {
             max-width: 11%;
         }
-        #peoplelist{
-            
+
+        #peoplelist {
+
             position: absolute;
             /*overflow: auto;*/
             max-width: 200px;
@@ -147,7 +156,36 @@
             border-radius: 75px;
             padding: 70px;
             margin-left: 4.63%;
-            transition: opacity 1.5s, background-color 1.5s, margin 2s, height 2s, border-radius 1.5s linear;
+            transition: opacity 1.5s, background-color 1.5s, margin 2s, height 2s, border-radius 1.5s, z-index 2s linear;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            border-radius: 50px;
+        }
+
+        /* Track */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        /* Handle */
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 50px;
+
+        }
+
+        /* Handle on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+            scale: 1.2em;
         }
     </style>
 </head>
@@ -212,21 +250,67 @@
         <div id="rightpart">
             <div class="cont" style="flex-direction: column;">
                 <div id="chat" readonly class="form-control"></div>
-                <div id="peoplelist"
-                    style="position: absolute;opacity: 0;margin-top:-400px;float:right">
+                <div id="peoplelist" style="position: absolute;opacity: 0;margin-top:-400px;float:right;z-index: -1;color:bisque">
                 </div>
-                <button id="people" style="float:right;z-index: 12312312;">People</button>
+
                 <div class="input-group mb-3">
                     <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
                         aria-describedby="basic-addon2">
                     <div class="input-group-append">
                         <button id="chatsubmit" class="btn btn-dark" type="button">Send</button>
+                        <button id="people" class="btn btn-dark" style="float:right;"><i
+                                class="fa fa-users" aria-hidden="true"></i></button>
                     </div>
                 </div>
 
             </div>
         </div>
+
     </div>
+    <div id="footer">
+        <footer class="bg-dark text-center text-white">
+            <!-- Grid container -->
+            <div class="container p-4 pb-0">
+                <!-- Section: Social media -->
+                <section class="mb-4">
+                    <!-- Facebook -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-facebook-f"></i></a>
+
+                    <!-- Twitter -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-twitter"></i></a>
+
+                    <!-- Google -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-google"></i></a>
+
+                    <!-- Instagram -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-instagram"></i></a>
+
+                    <!-- Linkedin -->
+                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
+                            class="fab fa-linkedin-in"></i></a>
+
+                    <!-- Github -->
+                    <a class="btn btn-outline-light btn-floating m-1"
+                        href="https://www.github.com/reuzun/watchOnline-Nodejs" target="_blank" role="button"><i
+                            class="fab fa-github"></i></a>
+                </section>
+                <!-- Section: Social media -->
+            </div>
+            <!-- Grid container -->
+
+            <!-- Copyright -->
+            <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+                © 2021 Copyright:
+                <span class="text-white" href="#">Rüştü Efe Uzun</span>
+            </div>
+            <!-- Copyright -->
+        </footer>
+    </div>
+
 
     <!-- Client-Server communication script -->
     <script src="/socket.io/socket.io.js"></script>
@@ -378,9 +462,29 @@
         })
 
 
+        let createRandomColor = () => {
+            let R;
+            let G;
+            let B;
+            do{
+                R = (Math.random()*255) | 0;
+                G = (Math.random()*255) | 0;
+                B = (Math.random()*255) | 0;
+            }while(R+G+B > 500)
+            let obj = {red:R, green:G, blue:B};
+            return obj;
+        };
+
+        var userChatColor = createRandomColor();
 
         let chat_message = (userId, message) => {
-            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
+            let obj = {red:userChatColor.red, green:userChatColor.green, blue:userChatColor.blue } // Deep copy
+            if(userId == "System"){
+                obj.red = 0;
+                obj.green = 0;
+                obj.blue = 255;
+            }
+            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:rgb(${obj.red}, ${obj.green}, ${obj.blue})';>${userId}: </span>${message}` + "</span><br>";
         };
 
         socket.on('newmessage', (text) => {
@@ -425,12 +529,24 @@
         // Set the chat
         let chatSubmit = document.getElementById('chatsubmit');
 
-        chatSubmit.onclick = () => {
+        let chatSubmitFunc = () => {
             let messageTxt = document.getElementById('message').value;
+            if (messageTxt.length == 0) return;
             chat_message(userId, messageTxt); scrollToBottom("chat");
             socket.emit("message", document.getElementById('chat').innerHTML)
             messageTxt = document.getElementById('message').value = "";
+        };
+
+        chatSubmit.onclick = () => {
+            chatSubmitFunc();
         }
+
+        document.addEventListener('keyup', (e) => {
+            let messageTxt = document.getElementById('message')
+            if (e.keyCode == 13 && document.activeElement == messageTxt) {
+                chatSubmitFunc();
+            }
+        });
 
         // Set the new Video
         submit.onclick = () => {
@@ -444,27 +560,30 @@
         }
 
 
-        function firstFunctionEver(peopleLi){
+        function firstFunctionEver(peopleLi) {
             var element = document.querySelector("#peoplelist");
-            if (peopleLi.style.opacity==0) {
+            if (peopleLi.style.opacity == 0) {
                 //console.log("if");
                 //element.style.visibility = 'visible';
                 element.style.opacity = '1';
-                peopleLi.style.backgroundColor = "yellow"
-                element.style.margin = "0px 0px 0px 195px"
-                element.style.height = "372px"
+                peopleLi.style.backgroundColor = "#293009"
+                element.style.margin = "0px 0px 0px 180px"
+                element.style.height = "410px"
                 element.style.borderRadius = "75px"
+                element.style.zIndex = "121212121";
             }
-            else{
+            else {
                 //console.log("else");
                 //element.style.visibility = "hidden";
-               
+
                 element.style.opacity = '0';
                 element.padding = '0';
                 peopleLi.style.backgroundColor = "green"
-                element.style.margin = "0px 0px -372px 195px "
+                element.style.margin = "0px 0px -410px 180px "
                 element.style.height = "0px"
-                element.style.borderRadius = "-400px"
+                element.style.borderRadius = "-40px"
+                element.style.zIndex = "-1"
+                //setTimeout(()=>{element.style.zIndex = "-1"}, 2000)
             }
         }
 
