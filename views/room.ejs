@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <head>
+    <link rel="shortcut icon" type="image/x-icon" href="/output-onlinepngtools.png" />
     <title>Room: <%=roomId%>
     </title>
     <script>
@@ -210,7 +211,7 @@
 
     </nav>
 
-    <div class="cont">
+    <div class="cont" style="padding-top: 2%;">
         <!-- Left part -- Playlist Section -- -->
         <div id="leftpart">
             <fieldset>
@@ -487,9 +488,17 @@
             document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:rgb(${obj.red}, ${obj.green}, ${obj.blue})';>${userId}: </span>${message}` + "</span><br>";
         };
 
+        socket.on("userquit", (text, userId, message) => {
+            document.getElementById('chat').innerHTML = text;
+            chat_message(userId, message)
+            socket.emit("setText", document.getElementById('chat').innerHTML);
+        })
+        
+
         socket.on('newmessage', (text) => {
             document.getElementById('chat').innerHTML = text;
             scrollToBottom("chat");
+            socket.emit("setText", document.getElementById('chat').innerHTML);
         })
 
         let getVideoName = async (link) => {

@@ -195,7 +195,32 @@ let handleSocket = (socket, req, res) => {
         }
 
 
-        let str = roomChatDatas[req.params.roomId] + chat_message("System", `${socket.userId} has left the room.`);
+        // let str = roomChatDatas[req.params.roomId] + chat_message("System", `${socket.userId} has left the room.`);
+        let userId = "System";
+        let message = `${socket.userId} has left the room.`;
+        //console.log("Gönderildi herkese")
+        socket.broadcast.emit('userquit', roomChatDatas[req.params.roomId], userId, message);
+        // roomChatDatas[req.params.roomId] = str;
+
+
+    })
+
+    socket.on("setText", (str)=>{
+        roomChatDatas[req.params.roomId] = str;
+    })
+
+    socket.on('reconnect', () => {
+        roomPeople[req.params.roomId].push(socket.userId);
+
+        try{
+            if (roomChatDatas[req.params.roomId].endsWith(chat_message("System", `${socket.userId} has reconnected to the room.`)))
+                return;
+        }catch(err){
+            console.log("err193")
+        }
+
+
+        let str = roomChatDatas[req.params.roomId] + chat_message("System", `${socket.userId} has reconnected to the room.`);
 
         socket.broadcast.emit('newmessage', str);
         roomChatDatas[req.params.roomId] = str;
