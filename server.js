@@ -33,6 +33,7 @@ app.get("/exists", (req, res) => {
 
 app.get('/create', (req, res) => {
     let rand = (Math.random()*9500000) | 0;
+    roomDatas[rand] = { vid: CvideoId, time: 1, status: 1 } 
     res.redirect(308, `/room/${rand}/video/${CvideoId}`)
 });
 
