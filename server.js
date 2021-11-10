@@ -4,6 +4,7 @@ import { createServer } from 'http';
 const server = createServer(app);
 import { Server } from "socket.io";
 const io = new Server(server);
+import * as path from 'path';
 
 // Setting env variables.
 import { config } from 'dotenv';
@@ -13,24 +14,41 @@ config();
 const API_SERVER_PORT = process.env.PORT || 3000;
 const URL = process.env.URL || `http://localhost:${API_SERVER_PORT}`
 
+const __dirname = path.resolve(path.dirname('')); 
 
-
+//app.use(express.static(__dirname));
 app.use(express.static('public'));
-app.use("/model", express.static('model'));
+//app.use("/model", express.static('model'));
 app.use(json());       // to support JSON-encoded bodies
 app.use(urlencoded({ extended: true })); // to support URL-encoded bodies
 
 
 app.set('view engine', 'ejs');
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname, '/public/index.html');
+
+app.get("/exists", (req, res) => {
+    res.sendFile(path.join(__dirname, "\\public\\roomalreadyexists.html"));
+});
+
+
+app.get('/create', (req, res) => {
+    let rand = (Math.random()*9500000) | 0;
+    res.redirect(308, `/room/${rand}/video/${CvideoId}`)
 });
 
 
 app.post('/room', (req, res) => {
+    if (req.body.create == "Create Room") {
+        if (availableRooms.includes(req.body.room)) {
+            res.redirect(302, `/exists`)
+            res.end();
+            return;
+        }
+    }
+
     res.redirect(308, `/room/${req.body.room}/video/${CvideoId}`)
 });
+
 /*
 import Video from "./model/video.js";
 let firstVideo = new Video('9VksF2IXlQw', 0, 1);
@@ -159,9 +177,9 @@ let handleSocket = (socket, req, res) => {
             return;
         }
 
-        try{
+        try {
             if (roomPlaylistDatas[req.params.roomId].length == 0) return;
-        }catch(err){
+        } catch (err) {
             return;
             console.log("err:165")
         }
@@ -187,10 +205,10 @@ let handleSocket = (socket, req, res) => {
     socket.on('disconnect', () => {
         roomPeople[req.params.roomId] = remove(roomPeople[req.params.roomId], socket.userId, req.params.roomId)
 
-        try{
+        try {
             if (roomChatDatas[req.params.roomId].endsWith(chat_message("System", `${socket.userId} has left the room.`)))
                 return;
-        }catch(err){
+        } catch (err) {
             console.log("err193")
         }
 
@@ -205,17 +223,17 @@ let handleSocket = (socket, req, res) => {
 
     })
 
-    socket.on("setText", (str)=>{
+    socket.on("setText", (str) => {
         roomChatDatas[req.params.roomId] = str;
     })
 
     socket.on('reconnect', () => {
         roomPeople[req.params.roomId].push(socket.userId);
 
-        try{
+        try {
             if (roomChatDatas[req.params.roomId].endsWith(chat_message("System", `${socket.userId} has reconnected to the room.`)))
                 return;
-        }catch(err){
+        } catch (err) {
             console.log("err193")
         }
 

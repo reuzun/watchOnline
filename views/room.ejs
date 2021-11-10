@@ -188,6 +188,17 @@
             background: #555;
             scale: 1.2em;
         }
+
+        .iconlink {
+            min-width: 150px;
+            max-width: 150px;
+        }
+
+        .fa,
+        .fab {
+            float: left;
+            padding-top: 3%;
+        }
     </style>
 </head>
 <html>
@@ -251,7 +262,8 @@
         <div id="rightpart">
             <div class="cont" style="flex-direction: column;">
                 <div id="chat" readonly class="form-control"></div>
-                <div id="peoplelist" style="position: absolute;opacity: 0;margin-top:-400px;float:right;z-index: -1;color:bisque">
+                <div id="peoplelist"
+                    style="position: absolute;opacity: 0;margin-top:-400px;float:right;z-index: -1;color:bisque">
                 </div>
 
                 <div class="input-group mb-3">
@@ -259,8 +271,8 @@
                         aria-describedby="basic-addon2">
                     <div class="input-group-append">
                         <button id="chatsubmit" class="btn btn-dark" type="button">Send</button>
-                        <button id="people" class="btn btn-dark" style="float:right;"><i
-                                class="fa fa-users" aria-hidden="true"></i></button>
+                        <button id="people" class="btn btn-dark" style="float:right;"><i class="fa fa-users"
+                                aria-hidden="true"></i></button>
                     </div>
                 </div>
 
@@ -271,42 +283,49 @@
     <div id="footer">
         <footer class="bg-dark text-center text-white">
             <!-- Grid container -->
-            <div class="container p-4 pb-0">
-                <!-- Section: Social media -->
-                <section class="mb-4">
-                    <!-- Facebook -->
-                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
-                            class="fab fa-facebook-f"></i></a>
+            <div class="container p-4">
+                <!--Grid row-->
+                <div class="row">
+                    <!--Grid column-->
+                    <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                        <h5 class="text-uppercase">What is WatchOnline</h5>
 
-                    <!-- Twitter -->
-                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
-                            class="fab fa-twitter"></i></a>
+                        <p>
+                            This is a website that you can watch youtube videos with your friends simultaneously.<br>
+                            For communication you can use side links
+                        </p>
+                    </div>
+                    <!--Grid column-->
 
-                    <!-- Google -->
-                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
-                            class="fab fa-google"></i></a>
+                    <!--Grid column-->
+                    <div class="col-lg-6 col-md-6 mb-4 mb-md-0">
+                        <h5 class="text-uppercase">Links</h5>
 
-                    <!-- Instagram -->
-                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
-                            class="fab fa-instagram"></i></a>
+                        <ul class="list-unstyled mb-0">
+                            <li>
+                                <!-- Github -->
+                                <a class="btn btn-outline-light btn-floating m-1 iconlink"
+                                    href="https://www.github.com/reuzun/watchOnline-Nodejs" target="_blank"
+                                    role="button"><i class="fab fa-github"></i>Github</a>
+                            </li>
+                            <li>
+                                <a class="btn btn-outline-light btn-floating m-1 iconlink"
+                                    href="https://www.github.com/reuzun/watchOnline-Nodejs" target="_blank"
+                                    role="button"><i class="fa fa-envelope"></i>Mail</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!--Grid column-->
 
-                    <!-- Linkedin -->
-                    <a class="btn btn-outline-light btn-floating m-1" href="#!" role="button"><i
-                            class="fab fa-linkedin-in"></i></a>
-
-                    <!-- Github -->
-                    <a class="btn btn-outline-light btn-floating m-1"
-                        href="https://www.github.com/reuzun/watchOnline-Nodejs" target="_blank" role="button"><i
-                            class="fab fa-github"></i></a>
-                </section>
-                <!-- Section: Social media -->
+                </div>
+                <!--Grid row-->
             </div>
             <!-- Grid container -->
 
             <!-- Copyright -->
             <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
                 © 2021 Copyright:
-                <span class="text-white" href="#">Rüştü Efe Uzun</span>
+                <span class="text-white" href="#">WatchOnline</span>
             </div>
             <!-- Copyright -->
         </footer>
@@ -467,20 +486,20 @@
             let R;
             let G;
             let B;
-            do{
-                R = (Math.random()*255) | 0;
-                G = (Math.random()*255) | 0;
-                B = (Math.random()*255) | 0;
-            }while(R+G+B > 500)
-            let obj = {red:R, green:G, blue:B};
+            do {
+                R = (Math.random() * 255) | 0;
+                G = (Math.random() * 255) | 0;
+                B = (Math.random() * 255) | 0;
+            } while (R + G + B > 500)
+            let obj = { red: R, green: G, blue: B };
             return obj;
         };
 
         var userChatColor = createRandomColor();
 
         let chat_message = (userId, message) => {
-            let obj = {red:userChatColor.red, green:userChatColor.green, blue:userChatColor.blue } // Deep copy
-            if(userId == "System"){
+            let obj = { red: userChatColor.red, green: userChatColor.green, blue: userChatColor.blue } // Deep copy
+            if (userId == "System") {
                 obj.red = 0;
                 obj.green = 0;
                 obj.blue = 255;
@@ -493,13 +512,18 @@
             chat_message(userId, message)
             socket.emit("setText", document.getElementById('chat').innerHTML);
         })
-        
+
 
         socket.on('newmessage', (text) => {
             document.getElementById('chat').innerHTML = text;
             scrollToBottom("chat");
             socket.emit("setText", document.getElementById('chat').innerHTML);
         })
+
+        socket.on('reconnect', function () {
+            console.log('you have been reconnected');
+            socket.emit('reconnect');
+        });
 
         let getVideoName = async (link) => {
             let ans = "";
