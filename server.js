@@ -14,7 +14,7 @@ config();
 const API_SERVER_PORT = process.env.PORT || 3000;
 const URL = process.env.URL || `http://localhost:${API_SERVER_PORT}`
 
-const __dirname = path.resolve(path.dirname('')); 
+const __dirname = path.resolve(path.dirname(''));
 
 //app.use(express.static(__dirname));
 app.use(express.static('public'));
@@ -32,8 +32,8 @@ app.get("/exists", (req, res) => {
 
 
 app.get('/create', (req, res) => {
-    let rand = (Math.random()*9500000) | 0;
-    roomDatas[rand] = { vid: CvideoId, time: 1, status: 1 } 
+    let rand = (Math.random() * 9500000) | 0;
+    roomDatas[rand] = { vid: CvideoId, time: 1, status: 1 }
     res.redirect(308, `/room/${rand}/video/${CvideoId}`)
 });
 
@@ -90,6 +90,7 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
     // Creating new Room
     if (!availableRooms.includes(req.params.roomId)) {
         io.of(`/room/${req.params.roomId}`).on('connection', (socket) => {
+
             socket.userId = username;
 
 
@@ -103,6 +104,7 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
         availableRooms.push(req.params.roomId)
     } else {
         io.of(`/room/${req.params.roomId}`).on('connection', (socket) => {
+
             socket.userId = username;
 
             if (roomPeople[req.params.roomId] && !roomPeople[req.params.roomId].includes(socket.userId) && !roomOldPeople[req.params.roomId].includes(socket.userId)) {
@@ -228,7 +230,7 @@ let handleSocket = (socket, req, res) => {
         roomChatDatas[req.params.roomId] = str;
     })
 
-    socket.on('reconnect', () => {
+    /*socket.on('reconnect', () => {
         roomPeople[req.params.roomId].push(socket.userId);
 
         try {
@@ -245,7 +247,7 @@ let handleSocket = (socket, req, res) => {
         roomChatDatas[req.params.roomId] = str;
 
 
-    })
+    })*/
 
     socket.on('people', () => {
         io.of(`/room/${req.params.roomId}`).emit("showpeople", roomPeople[req.params.roomId]);
@@ -255,7 +257,24 @@ let handleSocket = (socket, req, res) => {
         socket.emit("Id", socket.userId);
     })
 
+    socket.on("skipvideo", (userId) => {
+        if (skipvideoflag[socket.userId] == false) {
+            return;
+        }
+        skipvideoflag[socket.userId] = false
+        setTimeout(() => {
+            skipvideoflag[socket.userId] = true;
+        }, 500)
+        let vid = roomPlaylistDatas[req.params.roomId].shift();
+        roomDatas[req.params.roomId].vid = vid;
+        roomDatas[req.params.roomId].time = 0;
+        io.of(`/room/${req.params.roomId}`).emit("clientVideoChange", vid, 0, true);
+
+    })
+
 };
+
+var skipvideoflag = {};
 let chat_message = (userId, message) => {
     return '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
 };

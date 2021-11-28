@@ -250,6 +250,10 @@
                         <button id="submit" class="btn btn-dark" type="button">Play Video</button>
                         <button id="submitqueue" class="btn btn-light btn-outline-dark" type="button">Queue
                             Video</button>
+                        <button id="skipvideo"
+                            style="margin-top:75px;position: absolute;  background-color: transparent; color:coral"
+                            class="btn btn-light btn-outline-dark" type="button">Skip
+                            Video</button>
                     </div>
                 </div>
 
@@ -433,10 +437,12 @@
         }
 
         let playlistTbody = document.getElementById('playlist');
-
+        var flag_seek = true;
         // Set the playlist
         var playlistData_client = [];
-        socket.on('seek', (time, status, vidId, text, playlistTxt, playlistData) => {
+        socket.on('seek', async (time, status, vidId, text, playlistTxt, playlistData) => {
+            if (flag_seek == false) return;
+            flag_seek = false;
             //player.loadVideoById(vidId, time);
             window.history.pushState("", "", vidId);
             player.seekTo(time);
@@ -453,12 +459,30 @@
             socket.emit("message", document.getElementById('chat').innerHTML)
             scrollToBottom("chat");
 
-            playlistTbody.innerHTML = playlistTxt;
+            //playlistTbody.innerHTML = playlistTxt;
+            console.log(playlistData)
+            for (let data of playlistData) {
+                addTr(playlistTbody, "->", await getVideoName(data))
+            }
+            //deleteFirstVideoFromPlaylist();
             playlistData_client = playlistData;
             //console.log(playlistData_client)
         })
 
-        socket.on('clientVideoChange', (link, time) => {
+        let deleteFirstVideoFromPlaylist = () => {
+            playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]/*[playlistTbody.getElementsByTagName('tr').length - 1]*/);
+            playlistData_client.unshift();
+            //this.PLAYLIST.pop();
+        }
+
+        socket.on('clientVideoChange', (link, time, isskip) => {
+            if (isskip) deleteFirstVideoFromPlaylist();
+            if (!link.length > 3) return;
+
+            console.log("Link is : ")
+            console.log(link);
+            link = link.substring(link.lastIndexOf("=") + 1, link.length)
+            currentVideoId = link;
             player.loadVideoById(link);
             window.history.pushState("", "", link);
         })
@@ -520,10 +544,10 @@
             socket.emit("setText", document.getElementById('chat').innerHTML);
         })
 
-        socket.on('reconnect', function () {
+        /*socket.on('reconnect', function () {
             console.log('you have been reconnected');
             socket.emit('reconnect');
-        });
+        });*/
 
         let getVideoName = async (link) => {
             let ans = "";
@@ -549,6 +573,12 @@
             addTr(playlistTbody, "->", videoName)
             socket.emit('queue', playlistTbody.innerHTML, playlistData_client, link);
         };
+
+        let skipVideoButton = document.getElementById('skipvideo');
+        skipVideoButton.onclick = () => {
+            socket.emit("skipvideo", userId);
+        };
+
 
         socket.on('queued', (playlistcome, PLAYLIST) => {
             playlistData_client = PLAYLIST;
