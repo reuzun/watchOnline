@@ -268,7 +268,7 @@ let handleSocket = (socket, req, res) => {
         let vid = roomPlaylistDatas[req.params.roomId].shift();
         roomDatas[req.params.roomId].vid = vid;
         roomDatas[req.params.roomId].time = 0;
-        io.of(`/room/${req.params.roomId}`).emit("clientVideoChange", vid, 0, true);
+        io.of(`/room/${req.params.roomId}`).emit("clientVideoChange", vid, 0, roomPlaylistDatas[req.params.roomId],true);
 
     })
 
