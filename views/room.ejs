@@ -475,10 +475,10 @@
             //this.PLAYLIST.pop();
         }
 
-        socket.on('clientVideoChange', (link, time, isskip) => {
+        socket.on('clientVideoChange', (link, time, playlistData,isskip) => {
             if (isskip) deleteFirstVideoFromPlaylist();
             if (!link.length > 3) return;
-
+            playlistData_client = playlistData;
             console.log("Link is : ")
             console.log(link);
             link = link.substring(link.lastIndexOf("=") + 1, link.length)
