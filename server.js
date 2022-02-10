@@ -52,10 +52,7 @@ app.post('/room', (req, res) => {
 });
 
 
-import VideoPlayer from "./model/VideoPlayer.js";
-import Chat from "./model/Chat.js"
 import Message from './model/Message.js';
-let firstVideo = new VideoPlayer('AdIzLj2xCSY', 0, 1);
 let CvideoId = "AdIzLj2xCSY";
 
 let availableRooms = [];
@@ -86,7 +83,7 @@ io.on("connection", (socket)=>{
     });
 
     socket.on("statusChanged", (status)=>{
-        emitAll(socket, "statusChange", status )
+        socket.to(socket.roomId).emit("statusChange", status )
     })
 
     socket.on("clientSeek", (time)=>{
