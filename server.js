@@ -41,7 +41,7 @@ app.get('/create', (req, res) => {
 
 app.post('/room', (req, res) => {
     if (req.body.create == "Create Room") {
-        if (availableRooms.includes(req.body.room)) {
+        if (nonfreerooms.includes(req.body.room)) {
             res.redirect(302, `/exists`)
             res.end();
             return;
@@ -53,9 +53,10 @@ app.post('/room', (req, res) => {
 
 
 import Message from './model/Message.js';
+import e from 'express';
 let CvideoId = "AdIzLj2xCSY";
 
-let availableRooms = [];
+let nonfreerooms = [];
 
 app.use('/room/:roomId/video/:videoId', (req, res) => {
     res.render('room.ejs', {
@@ -66,36 +67,59 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
     });
 });
 
-io.on("connection", (socket)=>{
+io.on("connection", (socket) => {
 
     socket.userId = createRandomUsername();
     socket.emit("connected", "New Connection occured.", socket.userId)
 
-    socket.on("save", (roomId)=>{
+    socket.on("save", (roomId) => {
+
         socket.roomId = roomId;
+
+        if(!nonfreerooms.includes(roomId)) nonfreerooms.push(roomId)
+        else{
+            socket.to(socket.roomId).emit("getCurrent", socket.userId, socket.id);
+        }
+
         socket.join(roomId);
-        console.log("Socket " + socket.userId  + " succesfully registered to room " + roomId)
+        
+        console.log("Socket " + socket.userId + " succesfully registered to room " + roomId)
     })
 
-    socket.on("message", (userId, message)=>{
+    socket.on("roomEnterSeek", (time, vid, userIdToApply, id) => {
+            emitAll(socket, "init", time, vid, userIdToApply)
+    })
+
+    socket.on("message", (userId, message) => {
         let msg = new Message(userId, message, new Date().toTimeString().slice(0, 8));
-        emitAll(socket, "newMessage", JSON.stringify(msg) )
+        emitAll(socket, "newMessage", JSON.stringify(msg))
     });
 
-    socket.on("statusChanged", (status)=>{
-        socket.to(socket.roomId).emit("statusChange", status )
+    socket.on("statusChanged", (status) => {
+        socket.to(socket.roomId).emit("statusChange", status)
     })
 
-    socket.on("clientSeek", (time)=>{
-        socket.to(socket.roomId).emit("seek", time )
+    socket.on("clientSeek", (time) => {
+        socket.to(socket.roomId).emit("seek", time)
+    })
+
+    socket.on("videoChange", (link)=>{
+        emitAll(socket, "newVideo", link);
+    })
+
+    socket.on("getPeopleList", async ()=>{
+        const sockets = await io.in(socket.roomId).fetchSockets();
+        socket.emit("list", sockets.map(e=>e.userId))
+        //for(let i = 0; i < sockets.length ; i++)
+        //   console.log(sockets[i].userId);
     })
 
 });
 
-let emitAll = (socket, eventId, ...eventParams)=>{
+let emitAll = (socket, eventId, ...eventParams) => {
     socket.to(socket.roomId).emit(eventId, eventParams);
     socket.emit(eventId, eventParams);
-}    
+}
 
 let createRandomUsername = () => {
     return (100000 + (Math.random() * 999999)) | 0;

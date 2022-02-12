@@ -168,7 +168,7 @@
         //import VideoPlayer from '/./VideoPlayer.js';
         //import Chat from '/./Chat.js';
         //import Message from '/./Message.js';
-        
+
 
 
         var myRoomId = '<%=roomId%>';
@@ -176,7 +176,7 @@
         //console.log(`${'<%=URL%>'}/room/${myRoomId}`)
         const socket = io.connect(`http://localhost:${'<%=PORT%>'}`);
         let currentVideoId = "<%=videoId%>"
-        
+
         var tag = document.createElement('script');
 
         tag.src = "https://www.youtube.com/iframe_api";
@@ -196,48 +196,86 @@
                 events: {
                     'onReady': onPlayerReady,
                     'onStateChange': (event) => {
-                        if (Math.abs(lastTime - player.getCurrentTime()) > 2) {
-                            let time = player.getCurrentTime();
-                            socket.emit('clientSeek', time);
+                        if(!isSeekedLately && !isStatusChangedLately){
+                            if (Math.abs(lastTime - player.getCurrentTime()) > 2) {
+                                let time = player.getCurrentTime();
+                                socket.emit('clientSeek', time);
+                            }
+                            else if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED || event.data == YT.PlayerState.BUFFERING) {
+                                    socket.emit('statusChanged', 1, myRoomId)
+                            }
+                            else if (event.data == YT.PlayerState.ENDED) {
+                                socket.emit('videoended');
+                            }
+                            else {
+                                    socket.emit('statusChanged', 0, myRoomId);
+                            }
                         }
-                        else if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED || event.data == YT.PlayerState.BUFFERING) {
-                            socket.emit('statusChanged', 1, myRoomId)
-                        }
-                        else if (event.data == YT.PlayerState.ENDED) {
-                            socket.emit('videoended');
-                        }
-                        else {
-                            socket.emit('statusChanged', 0, myRoomId);
-                        }
-                        
                     }
                 }
             });
         }
 
         let userId = undefined;
-        socket.on('connected', (str, id)=>{
+
+
+
+        socket.on('connected', (str, id) => {
             console.log(str);
             userId = id;
             socket.emit("save", myRoomId);
         });
 
-        socket.on('newMessage', (msg)=>{
+
+        socket.on('getCurrent', (userIdToApply, id) => {
+            socket.emit('roomEnterSeek', player.getCurrentTime(), player.getVideoUrl(), userIdToApply, id)
+        })
+
+        socket.on('init', (params) => {
+            if (userId != params[2]) return
+            console.log("initting")
+            let time = params[0];
+            let vid = params[1];
+            let link = vid.substring(vid.lastIndexOf("=") + 1, vid.length)
+            console.log(time)
+            console.log(link)
+            setTimeout(()=>{
+                player.loadVideoById(link, time);
+                window.history.pushState("", "", link);
+            }, 2500)
+        }
+
+        )
+
+        socket.on('newMessage', (msg) => {
             msg = JSON.parse(msg);
             chat_message(msg.sender, msg.message, msg.time);
         });
+        
+        let isStatusChangedLately = false;
+        socket.on("statusChange", (status) => {
+            if (player) {
+                if (status == 0) {
+                    player.pauseVideo();
+                }
+                else if (status == 1) {
+                    player.playVideo();
+                }
+                isStatusChangedLately = true;
+            }
+            setTimeout(()=>{
+                isStatusChangedLately = false;
+            }, 150);
 
-        socket.on("statusChange", (status)=>{
-            if (status == 0) {
-                player.pauseVideo();
-            }
-            else if (status == 1) {
-                player.playVideo();
-            }
         });
 
-        socket.on("seek", (time)=>{
-            player.seekTo(time, false);
+        let isSeekedLately = false;
+        socket.on("seek", (time) => {
+            player.seekTo(time);
+            isSeekedLately = true;
+            setTimeout(()=>{
+                isSeekedLately = false;
+            }, 150);
         });
 
         var lastTime = 0;
@@ -246,11 +284,14 @@
             setInterval(() => {
                 if (player.getPlayerState() == 2) return;
                 let time = player.getCurrentTime();
-                //socket.emit("currentTime", time, currentVideoId, myRoomId)
-                bool_flag_1 = true;
                 lastTime = time;
             }, 250)
-            //socket.emit('init', myRoomId);
+
+
+
+
+
+
         }
 
 
@@ -273,6 +314,77 @@
         });
 
 
+        let submit = document.getElementById("submit");
+        submit.onclick = () => {
+            let link = document.getElementById("link").value;
+            
+            link = link.substring(link.lastIndexOf("=") + 1, link.length)
+            //currentVideoId = link;
+            socket.emit('videoChange', link);
+            //player.loadVideoById(link);
+            //window.history.pushState("", "", link);
+        }
+
+        socket.on("newVideo", (data)=>{
+            console.log("new video arrived!")
+            let link = data[0];
+            player.loadVideoById(link);
+            window.history.pushState("", "", link);
+        });
+
+
+        function firstFunctionEver(peopleLi) {
+            var element = document.querySelector("#peoplelist");
+            if (peopleLi.style.opacity == 0) {
+                //console.log("if");
+                //element.style.visibility = 'visible';
+                element.style.opacity = '1';
+                peopleLi.style.backgroundColor = "#293009"
+                element.style.margin = "0px 0px 0px 180px"
+                element.style.height = "410px"
+                element.style.borderRadius = "75px"
+                element.style.zIndex = "121212121";
+            }
+            else {
+                //console.log("else");
+                //element.style.visibility = "hidden";
+                element.style.opacity = '0';
+                element.padding = '0';
+                peopleLi.style.backgroundColor = "green"
+                element.style.margin = "0px 0px -410px 180px "
+                element.style.height = "0px"
+                element.style.borderRadius = "-40px"
+                element.style.zIndex = "-1"
+                //setTimeout(()=>{element.style.zIndex = "-1"}, 2000)
+            }
+        }
+        let roomPeople = [];
+        let peopleBtn = document.getElementById("people");
+        peopleBtn.onclick = () => {
+            socket.emit("getPeopleList");
+            let showPFunc = () => {
+                let peopleStr = "";
+                for (let i = 0; i < roomPeople.length; i++)
+                    peopleStr += roomPeople[i] + "<br>";
+                let peopleLi = document.getElementById('peoplelist');
+                peopleLi.innerHTML = peopleStr;
+                firstFunctionEver(peopleLi);
+                /*peopleLi.style.opacity = peopleLi.style.opacity == 0 ? 1 : 0;
+                peopleLi.style.display = peopleLi.style.display == "block" ? "none" : "block";
+                peopleLi.style.visibility = peopleLi.style.visibility == "visible" ? "hidden" : "visible";
+                peopleLi.style.backgroundColor = "yellow"*/
+                roomPeople = [];
+            }
+            setTimeout(showPFunc, 500);
+        };
+
+        socket.on("list", (sockets)=>{
+            for(let i = 0; i < sockets.length ; i++){
+                roomPeople.push(sockets[i])
+            }
+        })
+
+        
 
     </script>
 
