@@ -358,31 +358,27 @@
                 //setTimeout(()=>{element.style.zIndex = "-1"}, 2000)
             }
         }
-        let roomPeople = [];
+
         let peopleBtn = document.getElementById("people");
         peopleBtn.onclick = () => {
             socket.emit("getPeopleList");
-            let showPFunc = () => {
-                let peopleStr = "";
-                for (let i = 0; i < roomPeople.length; i++)
-                    peopleStr += roomPeople[i] + "<br>";
-                let peopleLi = document.getElementById('peoplelist');
-                peopleLi.innerHTML = peopleStr;
-                firstFunctionEver(peopleLi);
-                /*peopleLi.style.opacity = peopleLi.style.opacity == 0 ? 1 : 0;
-                peopleLi.style.display = peopleLi.style.display == "block" ? "none" : "block";
-                peopleLi.style.visibility = peopleLi.style.visibility == "visible" ? "hidden" : "visible";
-                peopleLi.style.backgroundColor = "yellow"*/
-                roomPeople = [];
-            }
-            setTimeout(showPFunc, 500);
         };
 
-        socket.on("list", (sockets)=>{
-            for(let i = 0; i < sockets.length ; i++){
-                roomPeople.push(sockets[i])
-            }
+        socket.on("list", async (people)=>{
+            let peopleStr = "";
+            for (let i = 0; i < people.length; i++)
+                peopleStr += people[i] + "<br>";
+            let peopleLi = document.getElementById('peoplelist');
+            peopleLi.innerHTML = peopleStr;
+            firstFunctionEver(peopleLi);
         })
+
+        function asyncPeopleList(people){
+            for(let i = 0; i < people.length ; i++){
+                roomPeople.push(people[i])
+            }
+            return roomPeople;
+        }
 
         
 
