@@ -175,9 +175,9 @@
 
 
         var myRoomId = '<%=roomId%>';
-        //const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`); // Our server.js portnumber
-        //console.log(`${'<%=URL%>'}/room/${myRoomId}`)
-        const socket = io.connect(`http://localhost:${'<%=PORT%>'}`);
+        const socket = io.connect(`${'<%=URL%>'}`); // Our server.js portnumber
+        console.log(`${'<%=URL%>'}/room/${myRoomId}`)
+       // const socket = io.connect(`http://localhost:${'<%=PORT%>'}`);
         let currentVideoId = "<%=videoId%>"
 
         var tag = document.createElement('script');
