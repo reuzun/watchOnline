@@ -1,0 +1,179 @@
+#player {
+    min-width: 900px;
+    min-height: 450px;
+    background-color: green;
+}
+
+.leftside {
+    float: left;
+    margin-top: 3%;
+}
+
+.rightside {
+    float: right;
+}
+
+#submit {
+    min-width: 150px;
+}
+
+.cont {
+    display: flex;
+    justify-content: space-around;
+    flex: 1;
+}
+
+#chat {
+    min-width: 400px;
+    max-width: 400px;
+    min-height: 470px;
+    max-height: 470px;
+    resize: none;
+    word-break: break-word;
+    overflow: scroll;
+    overflow-x: hidden !important;
+    ;
+}
+
+table {
+    width: 10% !important;
+}
+
+#rightpart {
+    margin-top: 0.75rem;
+
+}
+
+#leftpart {
+    max-height: 550px;
+    overflow: auto;
+}
+
+#middlepart {
+    margin-top: 0.75rem;
+}
+
+nav {
+    display: block;
+}
+
+#brandname,
+#quote,
+#clock {
+    vertical-align: sub;
+    font-size: 1, 25rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#chat>*::selection,
+.chatuser::selection {
+    background-color: rgb(255, 246, 151);
+    text-shadow: 1px 1px 4px #113706;
+}
+
+*::selection {
+    background-color: rgb(255, 246, 151);
+    text-shadow: 1px 1px 4px #113706;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    /* iOS Safari */
+    -webkit-user-select: none;
+    /* Safari */
+    -khtml-user-select: none;
+    /* Konqueror HTML */
+    -moz-user-select: none;
+    /* Old versions of Firefox */
+    -ms-user-select: none;
+    /* Internet Explorer/Edge */
+    user-select: none;
+    /* Non-prefixed version, currently
+                          supported by Chrome, Edge, Opera and Firefox */
+}
+
+table {
+    min-width: 350px;
+    max-width: 350px;
+    table-layout: fixed !important;
+}
+
+th,
+td {
+    white-space: nowrap !important;
+    overflow: auto !important;
+}
+
+#leftpart>*::-webkit-scrollbar,
+tr::-webkit-scrollbar,
+td::-webkit-scrollbar,
+th::-webkit-scrollbar {
+    display: none;
+}
+
+#playlist>tbody>tr>td:nth-child(1) {
+    max-width: 11%;
+}
+
+#peoplelist {
+
+    position: absolute;
+    /*overflow: auto;*/
+    max-width: 200px;
+    min-width: 200px;
+    /*min-height: 386px;
+    max-height: 386px;*/
+    opacity: 1;
+    margin: 0px;
+    background-color: yellow;
+    border-radius: 75px;
+    padding: 70px;
+    margin-left: 4.63%;
+    transition: opacity 1.5s, background-color 1.5s, margin 2s, height 2s, border-radius 1.5s, z-index 2s linear;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    border-radius: 50px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 50px;
+
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+    scale: 1.2em;
+}
+
+.iconlink {
+    min-width: 150px;
+    max-width: 150px;
+}
+
+.fa,
+.fab {
+    float: left;
+    padding-top: 3%;
+}
+
+.chatmessage{
+    font-family: monospace;
+    font-size: 14px;
+}

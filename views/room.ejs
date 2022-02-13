@@ -6,8 +6,11 @@
     </title>
     <script>
 
-        let chat_message = (userId, message) => {
-            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
+        let chat_message = (userId, message, time) => {
+            message = message.replace(/>/g, '&gt;')
+                .replace(/</g, '&lt;')
+                .replace(/"/g, '&quot;')
+            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + time + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -15,191 +18,15 @@
                 document.getElementById('clock').innerHTML = new Date().toTimeString().slice(0, 8)
             }, 1000);
 
-
-
-            chat_message('Admin', 'This is chat! Welcome :)')
+            chat_message('Admin', 'This is chat! Welcome :)', new Date().toTimeString().slice(0, 8))
         });
     </script>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css">
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <style>
-        #player {
-            min-width: 900px;
-            min-height: 450px;
-            background-color: green;
-        }
 
-        .leftside {
-            float: left;
-            margin-top: 3%;
-        }
-
-        .rightside {
-            float: right;
-        }
-
-        #submit {
-            min-width: 150px;
-        }
-
-        .cont {
-            display: flex;
-            justify-content: space-around;
-            flex: 1;
-        }
-
-        #chat {
-            min-width: 400px;
-            max-width: 400px;
-            min-height: 470px;
-            max-height: 470px;
-            resize: none;
-            word-break: break-word;
-            overflow: scroll;
-            overflow-x: hidden !important;
-            ;
-        }
-
-        table {
-            width: 10% !important;
-        }
-
-        #rightpart {
-            margin-top: 0.75rem;
-
-        }
-
-        #leftpart {
-            max-height: 550px;
-            overflow: auto;
-        }
-
-        #middlepart {
-            margin-top: 0.75rem;
-        }
-
-        nav {
-            display: block;
-        }
-
-        #brandname,
-        #quote,
-        #clock {
-            vertical-align: sub;
-            font-size: 1, 25rem;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        #chat>*::selection,
-        .chatuser::selection {
-            background-color: rgb(255, 246, 151);
-            text-shadow: 1px 1px 4px #113706;
-        }
-
-        *::selection {
-            background-color: rgb(255, 246, 151);
-            text-shadow: 1px 1px 4px #113706;
-        }
-
-        .noselect {
-            -webkit-touch-callout: none;
-            /* iOS Safari */
-            -webkit-user-select: none;
-            /* Safari */
-            -khtml-user-select: none;
-            /* Konqueror HTML */
-            -moz-user-select: none;
-            /* Old versions of Firefox */
-            -ms-user-select: none;
-            /* Internet Explorer/Edge */
-            user-select: none;
-            /* Non-prefixed version, currently
-                                  supported by Chrome, Edge, Opera and Firefox */
-        }
-
-        table {
-            min-width: 350px;
-            max-width: 350px;
-            table-layout: fixed !important;
-        }
-
-        th,
-        td {
-            white-space: nowrap !important;
-            overflow: auto !important;
-        }
-
-        #leftpart>*::-webkit-scrollbar,
-        tr::-webkit-scrollbar,
-        td::-webkit-scrollbar,
-        th::-webkit-scrollbar {
-            display: none;
-        }
-
-        #playlist>tbody>tr>td:nth-child(1) {
-            max-width: 11%;
-        }
-
-        #peoplelist {
-
-            position: absolute;
-            /*overflow: auto;*/
-            max-width: 200px;
-            min-width: 200px;
-            /*min-height: 386px;
-            max-height: 386px;*/
-            opacity: 1;
-            margin: 0px;
-            background-color: yellow;
-            border-radius: 75px;
-            padding: 70px;
-            margin-left: 4.63%;
-            transition: opacity 1.5s, background-color 1.5s, margin 2s, height 2s, border-radius 1.5s, z-index 2s linear;
-        }
-
-        body {
-            display: flex;
-            min-height: 100vh;
-            flex-direction: column;
-        }
-
-        ::-webkit-scrollbar {
-            width: 10px;
-            border-radius: 50px;
-        }
-
-        /* Track */
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        /* Handle */
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 50px;
-
-        }
-
-        /* Handle on hover */
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-            scale: 1.2em;
-        }
-
-        .iconlink {
-            min-width: 150px;
-            max-width: 150px;
-        }
-
-        .fa,
-        .fab {
-            float: left;
-            padding-top: 3%;
-        }
-    </style>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <html>
 
@@ -214,8 +41,8 @@
                 </span>
             </a>
             <span id="quote" style="color:white;font-size: 20px;padding-right: 7%;">
-                “e^(iπ)+1 = 0”
-                ― Leonhard Euler
+                “Be yourself; everyone else is already taken.”
+                ― Oscar Wilde
             </span>
             <span id="clock" class="noselect" style="color:white;font-size: 20px;">00.00.00</span>
         </div>
@@ -340,25 +167,18 @@
     <script src="/socket.io/socket.io.js"></script>
     <script type="module">
 
-        /*import Video from '/./model/video.js';
-        console.log(new Video())*/
+        //import VideoRoom from '/./VideoRoom.js';
+        //import VideoPlayer from '/./VideoPlayer.js';
+        //import Chat from '/./Chat.js';
+        //import Message from '/./Message.js';
 
-        function scrollToBottom(id) {
-            var div = document.getElementById(id);
-            div.scrollTop = div.scrollHeight - div.clientHeight;
-        }
 
 
         var myRoomId = '<%=roomId%>';
-        const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`, { auth: { roomId: myRoomId } }); // Our server.js portnumber
+        //const socket = io.connect(`${'<%=URL%>'}/room/${myRoomId}`); // Our server.js portnumber
+        //console.log(`${'<%=URL%>'}/room/${myRoomId}`)
+        const socket = io.connect(`http://localhost:${'<%=PORT%>'}`);
         let currentVideoId = "<%=videoId%>"
-        //let userId = (100000 + (Math.random() * 999999)) | 0;
-        socket.emit('myId');
-        let userId = "------";
-        socket.on('Id', (id) => {
-            if (userId == "------")
-                userId = id;
-        });
 
         var tag = document.createElement('script');
 
@@ -379,49 +199,94 @@
                 events: {
                     'onReady': onPlayerReady,
                     'onStateChange': (event) => {
-                        if (is_coming_time) {
-                            is_coming_time = false;
-
-                            return;
-                        }
-                        if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED || event.data == YT.PlayerState.BUFFERING) {
-                            socket.emit('statusChanged', 1, myRoomId)
-                            /*if(bool_flag_1)
-                                socket.emit('getTime', myRoomId, userId)*/
-                        }
-                        else if (event.data == YT.PlayerState.ENDED) {
-                            socket.emit('videoended');
-                        }
-                        else {
-                            socket.emit('statusChanged', 0, myRoomId);
-                        }
-                        if (Math.abs(lastTime - player.getCurrentTime()) > 2) {
-                            let time = player.getCurrentTime();
-                            socket.emit('clientSeek', time);
-                            lastTime = time;
+                        if (!isSeekedLately && !isStatusChangedLately) {
+                            if (Math.abs(lastTime - player.getCurrentTime()) > 2) {
+                                let time = player.getCurrentTime();
+                                socket.emit('clientSeek', time);
+                            }
+                            else if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED || event.data == YT.PlayerState.BUFFERING) {
+                                socket.emit('statusChanged', 1, myRoomId)
+                            }
+                            else if (event.data == YT.PlayerState.ENDED) {
+                                socket.emit('videoEnded');
+                            }
+                            else {
+                                socket.emit('statusChanged', 0, myRoomId);
+                            }
                         }
                     }
                 }
             });
         }
 
-        var is_coming_time = false;
-        socket.on('comingTime', (uid, time) => {
-            if (uid != userId) return;
-            is_coming_time = true;
-            player.seekTo(time, true);
+        let userId = undefined;
+
+
+
+        socket.on('connected', (str, id) => {
+            console.log(str);
+            userId = id;
+            socket.emit("save", myRoomId);
+        });
+
+
+        socket.on('getCurrent', (userIdToApply, id) => {
+            socket.emit('roomEnterSeek', player.getCurrentTime(), player.getVideoUrl(), playlistData_client, userIdToApply, id)
         })
 
-        socket.on('handleStatus', (status) => {
-            if (status == 0) {
-                player.pauseVideo();
-            }
-            else if (status == 1) {
-                player.playVideo();
-            }
-        })
+        socket.on('init', async (params) => {
+            if (userId != params[3]) return
+            let time = params[0];
+            let vid = params[1];
+            let playlist = params[2];
+            let link = vid.substring(vid.lastIndexOf("=") + 1, vid.length)
 
+            setTimeout(() => {
+                player.loadVideoById(link, time);
+                window.history.pushState("", "", link);
+            }, 2500)
 
+            for (let i = 0; i < playlist.length; i++) {
+                let videoName = await getVideoName(playlist[i]);
+                addTr(playlistTbody, (playlistData_client.length + 1), videoName)
+                playlistData_client.push(playlist[i]);
+            }
+
+        }
+
+        )
+
+        socket.on('newMessage', (msg) => {
+            msg = JSON.parse(msg);
+            chat_message(msg.sender, msg.message, msg.time);
+            scrollToBottom("chat")
+        });
+
+        let isStatusChangedLately = false;
+        socket.on("statusChange", (status) => {
+            if (player) {
+                if (status == 0) {
+                    player.pauseVideo();
+                }
+                else if (status == 1) {
+                    player.playVideo();
+                }
+                isStatusChangedLately = true;
+            }
+            setTimeout(() => {
+                isStatusChangedLately = false;
+            }, 150);
+
+        });
+
+        let isSeekedLately = false;
+        socket.on("seek", (time) => {
+            player.seekTo(time);
+            isSeekedLately = true;
+            setTimeout(() => {
+                isSeekedLately = false;
+            }, 150);
+        });
 
         var lastTime = 0;
         function onPlayerReady(event) {
@@ -429,181 +294,36 @@
             setInterval(() => {
                 if (player.getPlayerState() == 2) return;
                 let time = player.getCurrentTime();
-                socket.emit("currentTime", time, currentVideoId, myRoomId)
-                bool_flag_1 = true;
                 lastTime = time;
             }, 250)
-            socket.emit('init', myRoomId);
         }
 
-        let playlistTbody = document.getElementById('playlist');
-        var flag_seek = true;
-        // Set the playlist
-        var playlistData_client = [];
-        socket.on('seek', async (time, status, vidId, text, playlistTxt, playlistData) => {
-            if (flag_seek == false) return;
-            flag_seek = false;
-            //player.loadVideoById(vidId, time);
-            window.history.pushState("", "", vidId);
-            player.seekTo(time);
-            if (status == 0) {
-                player.pauseVideo();
-            }
-            else if (status == 1) {
-                player.playVideo();
-            }
-            currentVideoId = vidId;
-            //document.getElementById('chat').innerHTML += text == null ? "" : text;
-            document.getElementById('chat').innerHTML = text;
-            chat_message("System", `${userId} has joined the room!`)
-            socket.emit("message", document.getElementById('chat').innerHTML)
-            scrollToBottom("chat");
-
-            //playlistTbody.innerHTML = playlistTxt;
-            console.log(playlistData)
-            for (let data of playlistData) {
-                addTr(playlistTbody, "->", await getVideoName(data))
-            }
-            //deleteFirstVideoFromPlaylist();
-            playlistData_client = playlistData;
-            //console.log(playlistData_client)
+        socket.on("videoEnd", () => {
+            playNextVideo();
         })
 
-        let deleteFirstVideoFromPlaylist = () => {
-            playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]/*[playlistTbody.getElementsByTagName('tr').length - 1]*/);
-            playlistData_client.unshift();
-            //this.PLAYLIST.pop();
-        }
-
-        socket.on('clientVideoChange', (link, time, playlistData,isskip) => {
-            if (isskip) deleteFirstVideoFromPlaylist();
-            if (!link.length > 3) return;
-            playlistData_client = playlistData;
-            console.log("Link is : ")
-            console.log(link);
+        let playNextVideo = () => {
+            let link = playlistData_client.shift();
             link = link.substring(link.lastIndexOf("=") + 1, link.length)
-            currentVideoId = link;
-            player.loadVideoById(link);
             window.history.pushState("", "", link);
-        })
-
-        socket.on('timeChanged', (time) => {
-            player.seekTo(time);
-        })
-
-        socket.on('videoend', (link, pl) => {
-            playlistData_client.shift();
-            //console.log("satır 351"); console.log(pl);
-            //playlist = pl;
-            //console.log(link)
-            link = link.substring(link.lastIndexOf("=") + 1, link.length)
-            currentVideoId = link;
             player.loadVideoById(link);
-            let playlistElem = document.getElementById('playlist');
-            playlistElem.removeChild(playlistElem.getElementsByTagName('tr')[0]);
-            socket.emit("playlisthtmldata", playlistElem.innerHTML);
-            window.history.pushState("", "", link);
-        })
-
-
-        let createRandomColor = () => {
-            let R;
-            let G;
-            let B;
-            do {
-                R = (Math.random() * 255) | 0;
-                G = (Math.random() * 255) | 0;
-                B = (Math.random() * 255) | 0;
-            } while (R + G + B > 500)
-            let obj = { red: R, green: G, blue: B };
-            return obj;
-        };
-
-        var userChatColor = createRandomColor();
-
-        let chat_message = (userId, message) => {
-            let obj = { red: userChatColor.red, green: userChatColor.green, blue: userChatColor.blue } // Deep copy
-            if (userId == "System") {
-                obj.red = 0;
-                obj.green = 0;
-                obj.blue = 255;
-            }
-            document.getElementById('chat').innerHTML += '<span class="chatmessage">' + new Date().toTimeString().slice(0, 8) + ` <span class="chatuser" style='color:rgb(${obj.red}, ${obj.green}, ${obj.blue})';>${userId}: </span>${message}` + "</span><br>";
-        };
-
-        socket.on("userquit", (text, userId, message) => {
-            document.getElementById('chat').innerHTML = text;
-            chat_message(userId, message)
-            socket.emit("setText", document.getElementById('chat').innerHTML);
-        })
-
-
-        socket.on('newmessage', (text) => {
-            document.getElementById('chat').innerHTML = text;
-            scrollToBottom("chat");
-            socket.emit("setText", document.getElementById('chat').innerHTML);
-        })
-
-        /*socket.on('reconnect', function () {
-            console.log('you have been reconnected');
-            socket.emit('reconnect');
-        });*/
-
-        let getVideoName = async (link) => {
-            let ans = "";
-            await fetch(`https://www.youtube.com/oembed?url=${link}&format=json`)
-                .then(response => response.json())
-                .then(data => ans = data.title);
-            return ans;
+            // Rerendering could be done. Since when u remove child
+            // the next videos number becomes 2 instead of 2
+            playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]);
         }
 
-        let addTr = (elem, no, link) => {
-            elem.innerHTML += `<tr>
-                            <td>${no}</td>
-                            <td>${link}</td>
-                            
-                        </tr>`;
-        };
-        let queueBtn = document.getElementById('submitqueue');
-        queueBtn.onclick = async () => {
-            let link = document.getElementById("link").value;
-            playlistData_client.push(link);
-            let videoName = await getVideoName(link);
-            //console.log("code:370" + videoName)
-            addTr(playlistTbody, "->", videoName)
-            socket.emit('queue', playlistTbody.innerHTML, playlistData_client, link);
-        };
 
-        let skipVideoButton = document.getElementById('skipvideo');
-        skipVideoButton.onclick = () => {
-            socket.emit("skipvideo", userId);
-        };
-
-
-        socket.on('queued', (playlistcome, PLAYLIST) => {
-            playlistData_client = PLAYLIST;
-            //playlist = PLAYLIST;
-            //console.log(playlist)
-            //let videoName = await getVideoName(playlist[playlist.length-1]);
-            playlistTbody.innerHTML = playlistcome;
-            //addTr(playlistTbody, playlist.length, videoName)
-        })
-
-        // Set the chat
         let chatSubmit = document.getElementById('chatsubmit');
-
         let chatSubmitFunc = () => {
+            console.log("clicked.")
             let messageTxt = document.getElementById('message').value;
             if (messageTxt.length == 0) return;
-            chat_message(userId, messageTxt); scrollToBottom("chat");
-            socket.emit("message", document.getElementById('chat').innerHTML)
+            socket.emit("message", userId, messageTxt)
             messageTxt = document.getElementById('message').value = "";
         };
-
         chatSubmit.onclick = () => {
             chatSubmitFunc();
         }
-
         document.addEventListener('keyup', (e) => {
             let messageTxt = document.getElementById('message')
             if (e.keyCode == 13 && document.activeElement == messageTxt) {
@@ -611,16 +331,19 @@
             }
         });
 
-        // Set the new Video
+
+        let submit = document.getElementById("submit");
         submit.onclick = () => {
             let link = document.getElementById("link").value;
-            let submit = document.getElementById("submit");
             link = link.substring(link.lastIndexOf("=") + 1, link.length)
-            currentVideoId = link;
-            socket.emit('videoChange', link, myRoomId);
+            socket.emit('videoChange', link);
+        }
+
+        socket.on("newVideo", (data) => {
+            let link = data[0];
             player.loadVideoById(link);
             window.history.pushState("", "", link);
-        }
+        });
 
 
         function firstFunctionEver(peopleLi) {
@@ -638,7 +361,6 @@
             else {
                 //console.log("else");
                 //element.style.visibility = "hidden";
-
                 element.style.opacity = '0';
                 element.padding = '0';
                 peopleLi.style.backgroundColor = "green"
@@ -650,26 +372,74 @@
             }
         }
 
-        let roomPeople = [];
         let peopleBtn = document.getElementById("people");
         peopleBtn.onclick = () => {
-            socket.emit('people');
-            let showPFunc = () => {
-                let peopleStr = "";
-                for (let i = 0; i < roomPeople.length; i++)
-                    peopleStr += roomPeople[i] + "<br>";
-                let peopleLi = document.getElementById('peoplelist');
-                peopleLi.innerHTML = peopleStr;
-                firstFunctionEver(peopleLi);
-                /*peopleLi.style.opacity = peopleLi.style.opacity == 0 ? 1 : 0;
-                peopleLi.style.display = peopleLi.style.display == "block" ? "none" : "block";
-                peopleLi.style.visibility = peopleLi.style.visibility == "visible" ? "hidden" : "visible";
-                peopleLi.style.backgroundColor = "yellow"*/
-            }
-            setTimeout(showPFunc, 500);
+            socket.emit("getPeopleList");
         };
-        socket.on("showpeople", (users) => {
-            roomPeople = users;
+
+        socket.on("list", async (people) => {
+            let peopleStr = "";
+            for (let i = 0; i < people.length; i++)
+                peopleStr += people[i] + "<br>";
+            let peopleLi = document.getElementById('peoplelist');
+            peopleLi.innerHTML = peopleStr;
+            firstFunctionEver(peopleLi);
+        })
+
+        function asyncPeopleList(people) {
+            for (let i = 0; i < people.length; i++) {
+                roomPeople.push(people[i])
+            }
+            return roomPeople;
+        }
+
+
+        const playlistData_client = [];
+        let playlistTbody = document.getElementById('playlist');
+        let getVideoName = async (link) => {
+            let ans = "";
+            await fetch(`https://www.youtube.com/oembed?url=${link}&format=json`)
+                .then(response => response.json())
+                .then(data => ans = data.title);
+            return ans;
+        }
+        let addTr = (elem, no, link) => {
+            elem.innerHTML += `<tr>
+                            <td>${no}</td>
+                            <td>${link}</td>
+                            
+                        </tr>`;
+        };
+        let queueBtn = document.getElementById('submitqueue');
+        queueBtn.onclick = async () => {
+            let link = document.getElementById("link").value;
+            //playlistData_client.push(link);
+            let videoName = await getVideoName(link);
+            //addTr(playlistTbody, "->", videoName)
+            socket.emit('queue', link, videoName);
+        };
+
+        socket.on("queueReq", (params) => {
+            let link = params[0];
+            let videoName = params[1];
+            addTr(playlistTbody, (playlistData_client.length + 1), videoName)
+            playlistData_client.push(link);
+        })
+
+        function scrollToBottom(id) {
+            var div = document.getElementById(id);
+            div.scrollTop = div.scrollHeight - div.clientHeight;
+        }
+
+        let skipVideoButton = document.getElementById('skipvideo');
+        skipVideoButton.onclick = () => {
+            if (playlistData_client.length == 0) return;
+            console.log()
+            socket.emit("skipVideo");
+        };
+
+        socket.on("playNextVideo", () => {
+            playNextVideo();
         });
 
 
