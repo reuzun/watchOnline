@@ -122,6 +122,10 @@ io.on("connection", (socket) => {
         emitAll(socket, "videoEnd")
     })
 
+    socket.on("skipVideo", () => {
+        emitAll(socket, "playNextVideo");
+    })
+
 });
 
 let emitAll = (socket, eventId, ...eventParams) => {

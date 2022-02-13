@@ -7,6 +7,9 @@
     <script>
 
         let chat_message = (userId, message, time) => {
+            message = message.replace(/>/g, '&gt;')
+                .replace(/</g, '&lt;')
+                .replace(/"/g, '&quot;')
             document.getElementById('chat').innerHTML += '<span class="chatmessage">' + time + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
         };
 
@@ -38,8 +41,8 @@
                 </span>
             </a>
             <span id="quote" style="color:white;font-size: 20px;padding-right: 7%;">
-                “e^(iπ)+1 = 0”
-                ― Leonhard Euler
+                “Be yourself; everyone else is already taken.”
+                ― Oscar Wilde
             </span>
             <span id="clock" class="noselect" style="color:white;font-size: 20px;">00.00.00</span>
         </div>
@@ -256,6 +259,7 @@
         socket.on('newMessage', (msg) => {
             msg = JSON.parse(msg);
             chat_message(msg.sender, msg.message, msg.time);
+            scrollToBottom("chat")
         });
 
         let isStatusChangedLately = false;
@@ -295,7 +299,10 @@
         }
 
         socket.on("videoEnd", () => {
-            console.log("videoEnd req come to client.");
+            playNextVideo();
+        })
+
+        let playNextVideo = () => {
             let link = playlistData_client.shift();
             link = link.substring(link.lastIndexOf("=") + 1, link.length)
             window.history.pushState("", "", link);
@@ -303,7 +310,7 @@
             // Rerendering could be done. Since when u remove child
             // the next videos number becomes 2 instead of 2
             playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]);
-        })
+        }
 
 
         let chatSubmit = document.getElementById('chatsubmit');
@@ -333,7 +340,6 @@
         }
 
         socket.on("newVideo", (data) => {
-            console.log("new video arrived!")
             let link = data[0];
             player.loadVideoById(link);
             window.history.pushState("", "", link);
@@ -420,6 +426,21 @@
             playlistData_client.push(link);
         })
 
+        function scrollToBottom(id) {
+            var div = document.getElementById(id);
+            div.scrollTop = div.scrollHeight - div.clientHeight;
+        }
+
+        let skipVideoButton = document.getElementById('skipvideo');
+        skipVideoButton.onclick = () => {
+            if (playlistData_client.length == 0) return;
+            console.log()
+            socket.emit("skipVideo");
+        };
+
+        socket.on("playNextVideo", () => {
+            playNextVideo();
+        });
 
 
     </script>

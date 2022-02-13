@@ -172,3 +172,8 @@ body {
     float: left;
     padding-top: 3%;
 }
+
+.chatmessage{
+    font-family: monospace;
+    font-size: 14px;
+}
