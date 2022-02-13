@@ -196,19 +196,19 @@
                 events: {
                     'onReady': onPlayerReady,
                     'onStateChange': (event) => {
-                        if(!isSeekedLately && !isStatusChangedLately){
+                        if (!isSeekedLately && !isStatusChangedLately) {
                             if (Math.abs(lastTime - player.getCurrentTime()) > 2) {
                                 let time = player.getCurrentTime();
                                 socket.emit('clientSeek', time);
                             }
                             else if (event.data == YT.PlayerState.PLAYING || event.data == YT.PlayerState.UNSTARTED || event.data == YT.PlayerState.BUFFERING) {
-                                    socket.emit('statusChanged', 1, myRoomId)
+                                socket.emit('statusChanged', 1, myRoomId)
                             }
                             else if (event.data == YT.PlayerState.ENDED) {
-                                socket.emit('videoended');
+                                socket.emit('videoEnded');
                             }
                             else {
-                                    socket.emit('statusChanged', 0, myRoomId);
+                                socket.emit('statusChanged', 0, myRoomId);
                             }
                         }
                     }
@@ -228,21 +228,27 @@
 
 
         socket.on('getCurrent', (userIdToApply, id) => {
-            socket.emit('roomEnterSeek', player.getCurrentTime(), player.getVideoUrl(), userIdToApply, id)
+            socket.emit('roomEnterSeek', player.getCurrentTime(), player.getVideoUrl(), playlistData_client, userIdToApply, id)
         })
 
-        socket.on('init', (params) => {
-            if (userId != params[2]) return
-            console.log("initting")
+        socket.on('init', async (params) => {
+            if (userId != params[3]) return
             let time = params[0];
             let vid = params[1];
+            let playlist = params[2];
             let link = vid.substring(vid.lastIndexOf("=") + 1, vid.length)
-            console.log(time)
-            console.log(link)
-            setTimeout(()=>{
+
+            setTimeout(() => {
                 player.loadVideoById(link, time);
                 window.history.pushState("", "", link);
             }, 2500)
+
+            for (let i = 0; i < playlist.length; i++) {
+                let videoName = await getVideoName(playlist[i]);
+                addTr(playlistTbody, (playlistData_client.length + 1), videoName)
+                playlistData_client.push(playlist[i]);
+            }
+
         }
 
         )
@@ -251,7 +257,7 @@
             msg = JSON.parse(msg);
             chat_message(msg.sender, msg.message, msg.time);
         });
-        
+
         let isStatusChangedLately = false;
         socket.on("statusChange", (status) => {
             if (player) {
@@ -263,7 +269,7 @@
                 }
                 isStatusChangedLately = true;
             }
-            setTimeout(()=>{
+            setTimeout(() => {
                 isStatusChangedLately = false;
             }, 150);
 
@@ -273,7 +279,7 @@
         socket.on("seek", (time) => {
             player.seekTo(time);
             isSeekedLately = true;
-            setTimeout(()=>{
+            setTimeout(() => {
                 isSeekedLately = false;
             }, 150);
         });
@@ -286,13 +292,18 @@
                 let time = player.getCurrentTime();
                 lastTime = time;
             }, 250)
-
-
-
-
-
-
         }
+
+        socket.on("videoEnd", () => {
+            console.log("videoEnd req come to client.");
+            let link = playlistData_client.shift();
+            link = link.substring(link.lastIndexOf("=") + 1, link.length)
+            window.history.pushState("", "", link);
+            player.loadVideoById(link);
+            // Rerendering could be done. Since when u remove child
+            // the next videos number becomes 2 instead of 2
+            playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]);
+        })
 
 
         let chatSubmit = document.getElementById('chatsubmit');
@@ -317,15 +328,11 @@
         let submit = document.getElementById("submit");
         submit.onclick = () => {
             let link = document.getElementById("link").value;
-            
             link = link.substring(link.lastIndexOf("=") + 1, link.length)
-            //currentVideoId = link;
             socket.emit('videoChange', link);
-            //player.loadVideoById(link);
-            //window.history.pushState("", "", link);
         }
 
-        socket.on("newVideo", (data)=>{
+        socket.on("newVideo", (data) => {
             console.log("new video arrived!")
             let link = data[0];
             player.loadVideoById(link);
@@ -364,7 +371,7 @@
             socket.emit("getPeopleList");
         };
 
-        socket.on("list", async (people)=>{
+        socket.on("list", async (people) => {
             let peopleStr = "";
             for (let i = 0; i < people.length; i++)
                 peopleStr += people[i] + "<br>";
@@ -373,14 +380,47 @@
             firstFunctionEver(peopleLi);
         })
 
-        function asyncPeopleList(people){
-            for(let i = 0; i < people.length ; i++){
+        function asyncPeopleList(people) {
+            for (let i = 0; i < people.length; i++) {
                 roomPeople.push(people[i])
             }
             return roomPeople;
         }
 
-        
+
+        const playlistData_client = [];
+        let playlistTbody = document.getElementById('playlist');
+        let getVideoName = async (link) => {
+            let ans = "";
+            await fetch(`https://www.youtube.com/oembed?url=${link}&format=json`)
+                .then(response => response.json())
+                .then(data => ans = data.title);
+            return ans;
+        }
+        let addTr = (elem, no, link) => {
+            elem.innerHTML += `<tr>
+                            <td>${no}</td>
+                            <td>${link}</td>
+                            
+                        </tr>`;
+        };
+        let queueBtn = document.getElementById('submitqueue');
+        queueBtn.onclick = async () => {
+            let link = document.getElementById("link").value;
+            //playlistData_client.push(link);
+            let videoName = await getVideoName(link);
+            //addTr(playlistTbody, "->", videoName)
+            socket.emit('queue', link, videoName);
+        };
+
+        socket.on("queueReq", (params) => {
+            let link = params[0];
+            let videoName = params[1];
+            addTr(playlistTbody, (playlistData_client.length + 1), videoName)
+            playlistData_client.push(link);
+        })
+
+
 
     </script>
 

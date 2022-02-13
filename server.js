@@ -53,7 +53,6 @@ app.post('/room', (req, res) => {
 
 
 import Message from './model/Message.js';
-import e from 'express';
 let CvideoId = "AdIzLj2xCSY";
 
 let nonfreerooms = [];
@@ -76,18 +75,18 @@ io.on("connection", (socket) => {
 
         socket.roomId = roomId;
 
-        if(!nonfreerooms.includes(roomId)) nonfreerooms.push(roomId)
-        else{
+        if (!nonfreerooms.includes(roomId)) nonfreerooms.push(roomId)
+        else {
             socket.to(socket.roomId).emit("getCurrent", socket.userId, socket.id);
         }
 
         socket.join(roomId);
-        
+
         console.log("Socket " + socket.userId + " succesfully registered to room " + roomId)
     })
 
-    socket.on("roomEnterSeek", (time, vid, userIdToApply, id) => {
-            emitAll(socket, "init", time, vid, userIdToApply)
+    socket.on("roomEnterSeek", (time, vid, playlist, userIdToApply, id) => {
+        emitAll(socket, "init", time, vid, playlist, userIdToApply)
     })
 
     socket.on("message", (userId, message) => {
@@ -103,15 +102,24 @@ io.on("connection", (socket) => {
         socket.to(socket.roomId).emit("seek", time)
     })
 
-    socket.on("videoChange", (link)=>{
+    socket.on("videoChange", (link) => {
         emitAll(socket, "newVideo", link);
     })
 
-    socket.on("getPeopleList", async ()=>{
+    socket.on("getPeopleList", async () => {
         const sockets = await io.in(socket.roomId).fetchSockets();
-        socket.emit("list", sockets.map(e=>e.userId))
+        socket.emit("list", sockets.map(e => e.userId))
         //for(let i = 0; i < sockets.length ; i++)
         //   console.log(sockets[i].userId);
+    })
+
+    socket.on("queue", (link, name) => {
+        emitAll(socket, "queueReq", link, name)
+    })
+
+    socket.on("videoEnded", () => {
+        console.log("Video ended request came to server.");
+        emitAll(socket, "videoEnd")
     })
 
 });
