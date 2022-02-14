@@ -78,7 +78,7 @@
                         <button id="submitqueue" class="btn btn-light btn-outline-dark" type="button">Queue
                             Video</button>
                         <button id="skipvideo"
-                            style="margin-top:75px;position: absolute;  background-color: transparent; color:coral"
+                            style="margin-top:75px;position: absolute;  background-color: transparent; color:coral; display: none;"
                             class="btn btn-light btn-outline-dark" type="button">Skip
                             Video</button>
                     </div>
@@ -167,17 +167,8 @@
     <script src="/socket.io/socket.io.js"></script>
     <script type="module">
 
-        //import VideoRoom from '/./VideoRoom.js';
-        //import VideoPlayer from '/./VideoPlayer.js';
-        //import Chat from '/./Chat.js';
-        //import Message from '/./Message.js';
-
-
-
         var myRoomId = '<%=roomId%>';
         const socket = io.connect(`${'<%=URL%>'}`); // Our server.js portnumber
-        console.log(`${'<%=URL%>'}/room/${myRoomId}`)
-       // const socket = io.connect(`http://localhost:${'<%=PORT%>'}`);
         let currentVideoId = "<%=videoId%>"
 
         var tag = document.createElement('script');
@@ -185,8 +176,8 @@
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        var bool_flag_1 = false;
 
+        var lastTime = 0;
         var player;
         window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
@@ -197,7 +188,14 @@
                     'playsinline': 1
                 },
                 events: {
-                    'onReady': onPlayerReady,
+                    'onReady': (event) => {
+                        setTimeout(() => event.target.playVideo(), 100);
+                        setInterval(() => {
+                            if (player.getPlayerState() == 2) return;
+                            let time = player.getCurrentTime();
+                            lastTime = time;
+                        }, 250)
+                    },
                     'onStateChange': (event) => {
                         if (!isSeekedLately && !isStatusChangedLately) {
                             if (Math.abs(lastTime - player.getCurrentTime()) > 2) {
@@ -221,10 +219,8 @@
 
         let userId = undefined;
 
-
-
+        // Connection - Initting part
         socket.on('connected', (str, id) => {
-            console.log(str);
             userId = id;
             socket.emit("save", myRoomId);
         });
@@ -237,7 +233,7 @@
         let playlistInitFlag = true;
         socket.on('init', async (params) => {
             if (userId != params[3]) return // Not best practice there should be a way just to send a particular socket.
-            if(!playlistInitFlag) return
+            if (!playlistInitFlag) return
             playlistInitFlag = false;
             let time = params[0];
             let vid = params[1];
@@ -255,15 +251,39 @@
                 playlistData_client.push(playlist[i]);
             }
 
-        }
+        })
 
-        )
+        // Chat Part
+
+        function scrollToBottom(id) {
+            var div = document.getElementById(id);
+            div.scrollTop = div.scrollHeight - div.clientHeight;
+        }
 
         socket.on('newMessage', (msg) => {
             msg = JSON.parse(msg);
             chat_message(msg.sender, msg.message, msg.time);
             scrollToBottom("chat")
         });
+
+        let chatSubmit = document.getElementById('chatsubmit');
+        let chatSubmitFunc = () => {
+            let messageTxt = document.getElementById('message').value;
+            if (messageTxt.length == 0) return;
+            socket.emit("message", userId, messageTxt)
+            messageTxt = document.getElementById('message').value = "";
+        };
+        chatSubmit.onclick = () => {
+            chatSubmitFunc();
+        }
+        document.addEventListener('keyup', (e) => {
+            let messageTxt = document.getElementById('message')
+            if (e.keyCode == 13 && document.activeElement == messageTxt) {
+                chatSubmitFunc();
+            }
+        });
+
+        // Player - User Movement Part
 
         let isStatusChangedLately = false;
         socket.on("statusChange", (status) => {
@@ -291,48 +311,10 @@
             }, 150);
         });
 
-        var lastTime = 0;
-        function onPlayerReady(event) {
-            setTimeout(() => event.target.playVideo(), 100);
-            setInterval(() => {
-                if (player.getPlayerState() == 2) return;
-                let time = player.getCurrentTime();
-                lastTime = time;
-            }, 250)
-        }
-
         socket.on("videoEnd", () => {
             playNextVideo();
         })
 
-        let playNextVideo = () => {
-            let link = playlistData_client.shift();
-            link = link.substring(link.lastIndexOf("=") + 1, link.length)
-            window.history.pushState("", "", link);
-            player.loadVideoById(link);
-            // Rerendering could be done. Since when u remove child
-            // the next videos number becomes 2 instead of 2
-            playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]);
-        }
-
-
-        let chatSubmit = document.getElementById('chatsubmit');
-        let chatSubmitFunc = () => {
-            console.log("clicked.")
-            let messageTxt = document.getElementById('message').value;
-            if (messageTxt.length == 0) return;
-            socket.emit("message", userId, messageTxt)
-            messageTxt = document.getElementById('message').value = "";
-        };
-        chatSubmit.onclick = () => {
-            chatSubmitFunc();
-        }
-        document.addEventListener('keyup', (e) => {
-            let messageTxt = document.getElementById('message')
-            if (e.keyCode == 13 && document.activeElement == messageTxt) {
-                chatSubmitFunc();
-            }
-        });
 
 
         let submit = document.getElementById("submit");
@@ -427,23 +409,32 @@
             let videoName = params[1];
             addTr(playlistTbody, (playlistData_client.length + 1), videoName)
             playlistData_client.push(link);
+            skipVideoButton.style.display = "block";
         })
 
-        function scrollToBottom(id) {
-            var div = document.getElementById(id);
-            div.scrollTop = div.scrollHeight - div.clientHeight;
-        }
 
         let skipVideoButton = document.getElementById('skipvideo');
         skipVideoButton.onclick = () => {
             if (playlistData_client.length == 0) return;
-            console.log()
             socket.emit("skipVideo");
         };
 
         socket.on("playNextVideo", () => {
             playNextVideo();
         });
+
+        let playNextVideo = () => {
+            let link = playlistData_client.shift();
+            link = link.substring(link.lastIndexOf("=") + 1, link.length)
+            window.history.pushState("", "", link);
+            player.loadVideoById(link);
+            // Rerendering could be done. Since when u remove child
+            // the next videos number becomes 2 instead of 2
+            playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]);
+            if(playlistData_client.length == 0) 
+                skipVideoButton.style.display = "none";
+        }
+
 
 
     </script>

@@ -67,22 +67,16 @@ app.use('/room/:roomId/video/:videoId', (req, res) => {
 });
 
 io.on("connection", (socket) => {
-
     socket.userId = createRandomUsername();
     socket.emit("connected", "New Connection occured.", socket.userId)
 
     socket.on("save", (roomId) => {
-
         socket.roomId = roomId;
-
         if (!nonfreerooms.includes(roomId)) nonfreerooms.push(roomId)
         else {
             socket.to(socket.roomId).emit("getCurrent", socket.userId, socket.id);
         }
-
         socket.join(roomId);
-
-        console.log("Socket " + socket.userId + " succesfully registered to room " + roomId)
     })
 
     socket.on("roomEnterSeek", (time, vid, playlist, userIdToApply, id) => {
@@ -109,8 +103,6 @@ io.on("connection", (socket) => {
     socket.on("getPeopleList", async () => {
         const sockets = await io.in(socket.roomId).fetchSockets();
         socket.emit("list", sockets.map(e => e.userId))
-        //for(let i = 0; i < sockets.length ; i++)
-        //   console.log(sockets[i].userId);
     })
 
     socket.on("queue", (link, name) => {
@@ -118,7 +110,6 @@ io.on("connection", (socket) => {
     })
 
     socket.on("videoEnded", () => {
-        console.log("Video ended request came to server.");
         emitAll(socket, "videoEnd")
     })
 
