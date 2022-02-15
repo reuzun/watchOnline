@@ -79,8 +79,8 @@ io.on("connection", (socket) => {
         socket.join(roomId);
     })
 
-    socket.on("roomEnterSeek", (time, vid, playlist, userIdToApply, id) => {
-        emitAll(socket, "init", time, vid, playlist, userIdToApply)
+    socket.on("roomEnterSeek", (time, vid, playlist, userIdToApply, id, isLoop) => {
+        emitAll(socket, "init", time, vid, playlist, userIdToApply, isLoop)
     })
 
     socket.on("message", (userId, message) => {

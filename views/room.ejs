@@ -228,13 +228,14 @@
 
 
         socket.on('getCurrent', (userIdToApply, id) => {
-            socket.emit('roomEnterSeek', player.getCurrentTime(), player.getVideoUrl(), playlistData_client, userIdToApply, id)
+            socket.emit('roomEnterSeek', player.getCurrentTime(), player.getVideoUrl(), playlistData_client, userIdToApply, id, isLoop)
         })
 
         let playlistInitFlag = true;
         socket.on('init', async (params) => {
             if (userId != params[3]) return // Not best practice there should be a way just to send a particular socket.
             if (!playlistInitFlag) return
+            isLoop = params[4];
             playlistInitFlag = false;
             let time = params[0];
             let vid = params[1];
