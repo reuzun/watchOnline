@@ -252,6 +252,9 @@
                 playlistData_client.push(playlist[i]);
             }
 
+            if(playlistData_client.length > 0)
+                skipVideoButton.style.display = "block";
+
         })
 
         // Chat Part
@@ -329,6 +332,8 @@
             let link = data[0];
             player.loadVideoById(link);
             window.history.pushState("", "", link);
+            isLoop = false;
+            chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
         });
 
 
@@ -427,19 +432,27 @@
         };
 
         socket.on("playNextVideo", () => {
+            isLoop = false;
+            chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
             playNextVideo();
         });
 
         let playNextVideo = () => {
-            let link = playlistData_client.shift();
-            link = link.substring(link.lastIndexOf("=") + 1, link.length)
-            window.history.pushState("", "", link);
-            player.loadVideoById(link);
-            // Rerendering could be done. Since when u remove child
-            // the next videos number becomes 2 instead of 2
-            playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]);
-            if(playlistData_client.length == 0) 
-                skipVideoButton.style.display = "none";
+            if(isLoop){
+                let link = player.getVideoUrl();
+                link = link.substring(link.lastIndexOf("=") + 1, link.length)
+                player.loadVideoById(link);
+            }else{
+                let link = playlistData_client.shift();
+                link = link.substring(link.lastIndexOf("=") + 1, link.length)
+                window.history.pushState("", "", link);
+                player.loadVideoById(link);
+                // Rerendering could be done. Since when u remove child
+                // the next videos number becomes 2 instead of 2
+                playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]);
+                if(playlistData_client.length == 0) 
+                    skipVideoButton.style.display = "none";
+            }
         }
 
 
@@ -491,6 +504,15 @@
             chat.style.height = oldStyle.shift();
             chat.style.width = oldStyle.shift();
         };
+
+        let isLoop = false;
+        socket.on("loop", (params)=>{
+            if(!isLoop)
+                chat_message('Admin', `Loop enabled by ${params[0]}`, new Date().toTimeString().slice(0, 8))
+            else
+                chat_message('Admin', `Loop disabled by ${params[0]}`, new Date().toTimeString().slice(0, 8))
+            isLoop = !isLoop;
+        })
 
 
 

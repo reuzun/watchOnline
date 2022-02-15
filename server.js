@@ -86,6 +86,7 @@ io.on("connection", (socket) => {
     socket.on("message", (userId, message) => {
         let msg = new Message(userId, message, new Date().toTimeString().slice(0, 8));
         emitAll(socket, "newMessage", JSON.stringify(msg))
+        if(message == "/loop") emitAll(socket, "loop", userId)
     });
 
     socket.on("statusChanged", (status) => {
