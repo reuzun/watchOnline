@@ -339,7 +339,10 @@
                 //element.style.visibility = 'visible';
                 element.style.opacity = '1';
                 peopleLi.style.backgroundColor = "#293009"
-                element.style.margin = "0px 0px 0px 180px"
+                if(showplaylist.style.display == "none")
+                    element.style.margin = "0px 0px 0px 180px"
+                else
+                    element.style.margin = "0px 0px -200px 280px"
                 element.style.height = "410px"
                 element.style.borderRadius = "75px"
                 element.style.zIndex = "121212121";
@@ -350,7 +353,10 @@
                 element.style.opacity = '0';
                 element.padding = '0';
                 peopleLi.style.backgroundColor = "green"
-                element.style.margin = "0px 0px -410px 180px "
+                if(showplaylist.style.display == "none")
+                    element.style.margin = "0px 0px -410px 180px "
+                else
+                    element.style.margin = "0px 0px -610px 280px "
                 element.style.height = "0px"
                 element.style.borderRadius = "-40px"
                 element.style.zIndex = "-1"
@@ -462,6 +468,8 @@
             oldStyle.push(JSON.parse(JSON.stringify(chat.style)).height);
             oldStyle.push(JSON.parse(JSON.stringify(chat.style)).width);
 
+            document.querySelector("#peoplelist").style.margin = "0px 0px -200px 280px"
+
             showplaylist.style.display = "block";
             contRightSideOfMiddlePart.style.width = "1400px";
             middlepart.style.width = "1400px";
@@ -472,6 +480,7 @@
             chat.style.width = "500px";
         }
         showplaylist.onclick = ()=>{
+            document.querySelector("#peoplelist").style.margin = "0px 0px 0px 180px"
             showplaylist.style.display = "none";
             showplaylist.style.display = oldStyle.shift();
             contRightSideOfMiddlePart.style.width = oldStyle.shift();
