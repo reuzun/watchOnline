@@ -25,9 +25,9 @@
 
 #chat {
     min-width: 400px;
-    max-width: 400px;
+    /*max-width: 400px;*/
     min-height: 470px;
-    max-height: 470px;
+    /*max-height: 470px;*/
     resize: none;
     word-break: break-word;
     overflow: scroll;

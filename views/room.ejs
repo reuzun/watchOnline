@@ -51,9 +51,10 @@
 
     <div class="cont" style="padding-top: 2%;">
         <!-- Left part -- Playlist Section -- -->
+        <button id="showplaylist" style="display:none;position: absolute;top: 500px;left: -10px;height: 90px;border-radius: 50px;padding-right: 1px;font-weight: bolder;background-color: rgb(61, 53, 53);color: whitesmoke;">><br>><br>></button>
         <div id="leftpart">
             <fieldset>
-                <legend>Playlist</legend>
+                <legend>Playlist <button id="playlisthide" class="btn btn-dark" style="float: right;">Hide</button></legend>
                 <table class="table">
                     <thead>
                         <tr>
@@ -181,8 +182,8 @@
         var player;
         window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
-                height: '390',
-                width: '640',
+                height: '100%',
+                width: '100%',
                 videoId: "<%=videoId%>",
                 playerVars: {
                     'playsinline': 1
@@ -434,6 +435,54 @@
             if(playlistData_client.length == 0) 
                 skipVideoButton.style.display = "none";
         }
+
+
+
+        let showplaylist = document.getElementById("showplaylist");
+        showplaylist.onmouseenter = ()=>{
+            showplaylist.style.left = "0px";
+        }
+        showplaylist.onmouseleave = ()=>{
+            showplaylist.style.left = "-10px";
+        }
+        let hideBtn = document.getElementById("playlisthide");
+        let videoContainer = document.getElementById("videoContainer")
+        let middlepart = document.getElementById("middlepart");
+        let leftPart = document.getElementById("leftpart");
+        let contRightSideOfMiddlePart = document.getElementsByClassName("cont rightside")[0];
+        let chat = document.getElementById('chat');
+        let oldStyle = [];
+        hideBtn.onclick = ()=>{
+            oldStyle.push(JSON.parse(JSON.stringify(showplaylist.style)).display);
+            oldStyle.push(JSON.parse(JSON.stringify(contRightSideOfMiddlePart.style)).width);
+            oldStyle.push(JSON.parse(JSON.stringify(middlepart.style)).width);
+            oldStyle.push(JSON.parse(JSON.stringify(leftPart.style)).display);
+            oldStyle.push(JSON.parse(JSON.stringify(videoContainer.style)).height);
+            oldStyle.push(JSON.parse(JSON.stringify(videoContainer.style)).width);
+            oldStyle.push(JSON.parse(JSON.stringify(chat.style)).height);
+            oldStyle.push(JSON.parse(JSON.stringify(chat.style)).width);
+
+            showplaylist.style.display = "block";
+            contRightSideOfMiddlePart.style.width = "1400px";
+            middlepart.style.width = "1400px";
+            leftPart.style.display = "none";
+            videoContainer.style.height = "650px"
+            videoContainer.style.width = "100%"
+            chat.style.height = "670px";
+            chat.style.width = "500px";
+        }
+        showplaylist.onclick = ()=>{
+            showplaylist.style.display = "none";
+            showplaylist.style.display = oldStyle.shift();
+            contRightSideOfMiddlePart.style.width = oldStyle.shift();
+            middlepart.style.width = oldStyle.shift();
+            leftPart.style.display = oldStyle.shift();
+            videoContainer.style.height = oldStyle.shift();
+            videoContainer.style.width = oldStyle.shift();
+            chat.style.height = oldStyle.shift();
+            chat.style.width = oldStyle.shift();
+        };
+
 
 
 
