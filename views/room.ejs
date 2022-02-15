@@ -428,12 +428,14 @@
         let skipVideoButton = document.getElementById('skipvideo');
         skipVideoButton.onclick = () => {
             if (playlistData_client.length == 0) return;
-            socket.emit("skipVideo");
+                socket.emit("skipVideo");
         };
 
         socket.on("playNextVideo", () => {
-            isLoop = false;
-            chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
+            if(isLoop){
+                isLoop = false;
+                chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
+            }
             playNextVideo();
         });
 
