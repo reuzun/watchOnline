@@ -28,7 +28,7 @@ app.set('view engine', 'ejs');
 
 
 app.get("/exists", (req, res) => {
-    res.sendFile(path.join(__dirname, "\\public\\roomalreadyexists.html"));
+    res.sendFile(path.join(__dirname, path.sep + "public" + path.sep + "roomalreadyexists.html"));
 });
 
 
