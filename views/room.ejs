@@ -226,14 +226,26 @@
             socket.emit("save", myRoomId);
         });
 
+        socket.on("disconnection", (params) => {
+            chat_message("Admin", "User " + params[0] + " disconnected.", new Date().toTimeString().slice(0, 8))
+        });
+
 
         socket.on('getCurrent', (userIdToApply, id) => {
             socket.emit('roomEnterSeek', player.getCurrentTime(), player.getVideoUrl(), playlistData_client, userIdToApply, id, isLoop)
         })
 
+        socket.on("newusermessage", (params)=>{
+            if(userId == params[0])return
+            chat_message("Admin", params[0] + " has joined the room.", new Date().toTimeString().slice(0, 8))
+        })
+
         let playlistInitFlag = true;
         socket.on('init', async (params) => {
-            if (userId != params[3]) return // Not best practice there should be a way just to send a particular socket.
+            if (userId != params[3]){
+                //chat_message("Admin", params[3] + " has joined the room.", new Date().toTimeString().slice(0, 8))
+                return // Not best practice there should be a way just to send a particular socket.
+            }
             if (!playlistInitFlag) return
             isLoop = params[4];
             playlistInitFlag = false;
@@ -475,6 +487,7 @@
         let chat = document.getElementById('chat');
         let oldStyle = [];
         hideBtn.onclick = ()=>{
+            // Deep copying.
             oldStyle.push(JSON.parse(JSON.stringify(showplaylist.style)).display);
             oldStyle.push(JSON.parse(JSON.stringify(contRightSideOfMiddlePart.style)).width);
             oldStyle.push(JSON.parse(JSON.stringify(middlepart.style)).width);

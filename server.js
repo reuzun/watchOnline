@@ -77,6 +77,7 @@ io.on("connection", (socket) => {
             socket.to(socket.roomId).emit("getCurrent", socket.userId, socket.id);
         }
         socket.join(roomId);
+        emitAll(socket, "newusermessage", socket.userId)
     })
 
     socket.on("roomEnterSeek", (time, vid, playlist, userIdToApply, id, isLoop) => {
@@ -118,7 +119,25 @@ io.on("connection", (socket) => {
         emitAll(socket, "playNextVideo");
     })
 
+    socket.on("disconnect", async ()=>{
+        emitAll(socket, "disconnection", socket.userId);
+        const sockets = await io.in(socket.roomId).fetchSockets();
+        if(sockets.length == 0)
+        {
+            removeElementFromList(nonfreerooms, socket.roomId)
+        }
+    })
+
 });
+
+let removeElementFromList = (list, elem) =>{
+    for(let i = 0; i < list.length ; i++){
+        if(list[i] == elem){
+            list.splice(i, 1);
+            return;
+        }
+    }
+}
 
 let emitAll = (socket, eventId, ...eventParams) => {
     socket.to(socket.roomId).emit(eventId, eventParams);
