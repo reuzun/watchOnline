@@ -27,11 +27,13 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <link rel="stylesheet" href="/style.css">
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
 </head>
 <html>
 
 <body>
-    <nav class="navbar navbar-dark bg-dark">
+    <div id="mobile" style="display: none;">No support for less that 1279px screen.</div>
+    <nav id="nav" class="navbar navbar-dark bg-dark">
         <div class="cont" style="min-width: 100%;justify-content: space-between;">
             <a class="navbar-brand" href="https://github.com/reuzun/watchOnline-Nodejs" target="_blank">
                 <img src="/output-onlinepngtools.png" width="40" height="40" class="d-inline-block align-top"
@@ -53,7 +55,7 @@
         <!-- Left part -- Playlist Section -- -->
         <button id="showplaylist" style="display:none;position: absolute;top: 500px;left: -10px;height: 90px;border-radius: 50px;padding-right: 1px;font-weight: bolder;background-color: rgb(61, 53, 53);color: whitesmoke;">><br>><br>></button>
         <div id="leftpart">
-            <fieldset>
+            <fieldset style="margin-top: 4%;">
                 <legend>Playlist <button id="playlisthide" class="btn btn-dark" style="float: right;">Hide</button></legend>
                 <table class="table">
                     <thead>
@@ -71,7 +73,7 @@
         <!-- Middle part -- Player Section -- -->
         <div id="middlepart">
             <div class="cont rightside" style="flex-direction: column;">
-                <div class="input-group mb-3">
+                <div id="topbuttons" class="input-group mb-3">
                     <input id="link" type="text" class="form-control" placeholder="Video Link" aria-label="Video Link"
                         aria-describedby="basic-addon2">
                     <div class="input-group-append">
@@ -85,7 +87,7 @@
                     </div>
                 </div>
 
-                <div id="videoContainer">
+                <div id="videoContainer" class="noselect">
                     <div id="player"></div>
                 </div>
             </div>
@@ -345,8 +347,10 @@
             let link = data[0];
             player.loadVideoById(link);
             window.history.pushState("", "", link);
-            isLoop = false;
-            chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
+            if(isLoop){
+                isLoop = false;
+                chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
+            }
         });
 
 
@@ -360,7 +364,7 @@
                 if(showplaylist.style.display == "none")
                     element.style.margin = "0px 0px 0px 180px"
                 else
-                    element.style.margin = "0px 0px -200px 280px"
+                    element.style.margin = "0px 0px -135px 250px"
                 element.style.height = "410px"
                 element.style.borderRadius = "75px"
                 element.style.zIndex = "121212121";
@@ -374,7 +378,7 @@
                 if(showplaylist.style.display == "none")
                     element.style.margin = "0px 0px -410px 180px "
                 else
-                    element.style.margin = "0px 0px -610px 280px "
+                    element.style.margin = "0px 0px -545px 250px "
                 element.style.height = "0px"
                 element.style.borderRadius = "-40px"
                 element.style.zIndex = "-1"
@@ -485,6 +489,7 @@
         let leftPart = document.getElementById("leftpart");
         let contRightSideOfMiddlePart = document.getElementsByClassName("cont rightside")[0];
         let chat = document.getElementById('chat');
+        let topbuttons = document.getElementById('topbuttons');
         let oldStyle = [];
         hideBtn.onclick = ()=>{
             // Deep copying.
@@ -497,16 +502,18 @@
             oldStyle.push(JSON.parse(JSON.stringify(chat.style)).height);
             oldStyle.push(JSON.parse(JSON.stringify(chat.style)).width);
 
-            document.querySelector("#peoplelist").style.margin = "0px 0px -200px 280px"
+            document.querySelector("#peoplelist").style.margin = "0px 0px -135px 250px"
 
             showplaylist.style.display = "block";
-            contRightSideOfMiddlePart.style.width = "1400px";
-            middlepart.style.width = "1400px";
+            contRightSideOfMiddlePart.style.width = "1350px";
+            middlepart.style.width = "1350px";
             leftPart.style.display = "none";
-            videoContainer.style.height = "650px"
+            videoContainer.style.height = "640px"
             videoContainer.style.width = "100%"
-            chat.style.height = "670px";
-            chat.style.width = "500px";
+            chat.style.height = "600px";
+            chat.style.width = "450px";
+            chat.style.maxWidth = "450px";
+            topbuttons.style.display = "none";
         }
         showplaylist.onclick = ()=>{
             document.querySelector("#peoplelist").style.margin = "0px 0px 0px 180px"
@@ -519,6 +526,8 @@
             videoContainer.style.width = oldStyle.shift();
             chat.style.height = oldStyle.shift();
             chat.style.width = oldStyle.shift();
+            chat.style.maxWidth = "400px";
+            topbuttons.style.display = "flex";
         };
 
         let isLoop = false;

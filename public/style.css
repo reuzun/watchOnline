@@ -25,7 +25,7 @@
 
 #chat {
     min-width: 400px;
-    /*max-width: 400px;*/
+    max-width: 400px;
     min-height: 470px;
     /*max-height: 470px;*/
     resize: none;
@@ -176,4 +176,23 @@ body {
 .chatmessage{
     font-family: monospace;
     font-size: 14px;
+}
+
+body{
+    overflow: hidden;
+}
+
+
+@media only screen and (max-width: 1279px) {
+    #nav { display: none;}
+    #middlepart { display: none;}
+    #rightpart { display: none;}
+    #footer { display: none;}
+    #mobile{
+        display: block!important;
+    }
+}
+
+@media only screen and (max-width: 1667px) {
+    #leftpart{display: none;}
 }
