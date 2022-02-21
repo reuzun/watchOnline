@@ -7,9 +7,10 @@
     <script>
 
         let chat_message = (userId, message, time) => {
-            message = message.replace(/>/g, '&gt;')
-                .replace(/</g, '&lt;')
-                .replace(/"/g, '&quot;')
+            message = message
+                //.replace(/>/g, '&gt;')
+                //.replace(/</g, '&lt;')
+                //.replace(/"/g, '&quot;')
             document.getElementById('chat').innerHTML += '<span class="chatmessage">' + time + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
         };
 
@@ -99,6 +100,13 @@
                 <div id="peoplelist"
                     style="position: absolute;opacity: 0;margin-top:-400px;float:right;z-index: -1;color:bisque">
                 </div>
+                
+
+                <div id="peoplelistchat"
+                    style="display:none;position: absolute;min-width: 100px;min-height: 100px;float: left;z-index: 1;color: #000;background-color: lawngreen;top: 48%;">
+                </div>
+                
+
 
                 <div class="input-group mb-3">
                     <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
@@ -281,26 +289,170 @@
 
         socket.on('newMessage', (msg) => {
             msg = JSON.parse(msg);
+            if(msg.message.includes("@" + userId)){
+                msg.message = msg.message.replace(/>/g, '&gt;')
+                .replace(/</g, '&lt;')
+                .replace(/"/g, '&quot;')
+                .replace("@" + userId, '<span style="background-color:rgb(121, 196, 224)">' +  "@" + userId + "</span>")
+            }
             chat_message(msg.sender, msg.message, msg.time);
             scrollToBottom("chat")
+            if(userId != msg.sender)
+                new Audio(`${'<%=URL%>'}` + "/notificationsound.mp3").play();
         });
 
         let chatSubmit = document.getElementById('chatsubmit');
         let chatSubmitFunc = () => {
             let messageTxt = document.getElementById('message').value;
             if (messageTxt.length == 0) return;
-            socket.emit("message", userId, messageTxt)
+            socket.emit("message", userId, messageTxt, new Date().toTimeString().slice(0, 8))
             messageTxt = document.getElementById('message').value = "";
         };
         chatSubmit.onclick = () => {
             chatSubmitFunc();
         }
-        document.addEventListener('keyup', (e) => {
+
+        let indx_chatpeople = 0;
+        let flag_chatpeople = false;
+        /*document.addEventListener('keyup', (e) => {
             let messageTxt = document.getElementById('message')
-            if (e.keyCode == 13 && document.activeElement == messageTxt) {
+            if (e.keyCode == 13 && document.activeElement == messageTxt && flag_chatpeople) {
                 chatSubmitFunc();
             }
-        });
+        });*/
+        
+        document.getElementById('message').onkeyup = (keyboardEvent) => {
+            /*if( document.getElementById('message').value[document.getElementById('message').value.length - 1] == "@" ){
+                return;
+            }
+            console.log(keyboardEvent);
+            if(keyboardEvent.keyCode == 81){
+                socket.emit("getPeopleListforchat")
+                flag_chatpeople = true;
+            }
+            else if(keyboardEvent.keyCode == 32){
+                peoplelistchat.style.display = "none";
+                peoplelistchat.innerHTML = "";
+                flag_chatpeople = false;
+            }
+            else if(keyboardEvent.keyCode == 8){
+                if( document.getElementById('message').value[document.getElementById('message').value.length - 1] == "@" ){
+                    peoplelistchat.style.display = "block";
+                    //flag_chatpeople = false;
+                }
+                if( !document.getElementById('message').value.includes("@") ){
+                    peoplelistchat.style.display = "none";
+                    peoplelistchat.innerHTML = "";
+                }
+            }else{
+
+            }*/
+            if(keyboardEvent.keyCode == 13){
+                if(flag_chatpeople){
+                    let sbstr = document.getElementById('message').value.substring(document.getElementById('message').value.lastIndexOf("@"), document.getElementById('message').value.length);
+                    console.log(sbstr);
+                    let change = document.getElementsByClassName("selectedchat")[0].innerHTML;
+                    document.getElementById("message").value = document.getElementById("message").value.replace(sbstr,"@" + change + " ")
+                    flag_chatpeople = false;
+                    peoplelistchat.style.display = "none";
+                    peoplelistchat.innerHTML = "";
+                    return;
+                }
+                flag_chatpeople = false;
+                peoplelistchat.style.display = "none";
+                peoplelistchat.innerHTML = "";
+                let messageTxt = document.getElementById('message')
+                if (document.activeElement == messageTxt) {
+                    chatSubmitFunc();
+                }
+            }
+            if(keyboardEvent.keyCode == 38){ // Up button
+                if(indx_chatpeople == 0) return;
+                indx_chatpeople--;
+                renderUserChat(filteredUsersOfRoom)
+            }
+            if(keyboardEvent.keyCode == 40){ // Down button
+                if(indx_chatpeople == usersOfRoom.length - 1) return;
+                indx_chatpeople++;
+                renderUserChat(filteredUsersOfRoom)
+            }
+        };
+
+        document.getElementById("message").oninput = (inputEvent)=>{
+            console.log(inputEvent.data);
+            if(inputEvent.data == "@"){
+                socket.emit("getPeopleListforchat")
+                flag_chatpeople = true;
+            }
+            else if(inputEvent.data == " "){
+                peoplelistchat.style.display = "none";
+                peoplelistchat.innerHTML = "";
+                flag_chatpeople = false;
+            }
+            else if(inputEvent.data == null){ // Backspace
+                if( document.getElementById('message').value[document.getElementById('message').value.length - 1] == "@" ){
+                    peoplelistchat.style.display = "block";
+                    flag_chatpeople = true;
+                    renderUserChat(usersOfRoom)
+                }
+                if( !document.getElementById('message').value.includes("@") ){
+                    peoplelistchat.style.display = "none";
+                    peoplelistchat.innerHTML = "";
+                    flag_chatpeople = false;
+                }
+            }
+            if(flag_chatpeople){
+                let search = document.getElementById('message').value.substring(document.getElementById('message').value.lastIndexOf("@") + 1, document.getElementById('message').value.length)
+                if(search.length == 0)return;
+                
+                peoplelistchat.innerHTML = "";
+
+                let j = 0;
+                filteredUsersOfRoom = [];
+                for(let i = 0; i < usersOfRoom.length; i++){
+                    if(usersOfRoom[i].toString().startsWith(search)){
+                        filteredUsersOfRoom[j++] = usersOfRoom[i];
+                    }
+                }
+                renderUserChat(filteredUsersOfRoom, true )
+            }
+        }
+
+        let asd = true;
+        let renderUserChat = (people, isFilter)=>{
+            people = people.filter(function( element ) {
+                return element !== undefined;
+            });
+            peoplelistchat.innerHTML = "";
+            if (isFilter) indx_chatpeople = 0;
+            for(let i = 0; i < people.length; i++){
+                if(!isFilter)usersOfRoom[i] = people[i].toString();
+                if(i == indx_chatpeople) 
+                    peoplelistchat.innerHTML += `<span class="selectedchat">${people[i]}</span>` + "<br>";
+                else
+                    peoplelistchat.innerHTML += people[i] + "<br>";
+            }
+            peoplelistchat.style.display = "block";
+            if(asd){
+                for(let i = 0; i < people.length; i++){
+                    filteredUsersOfRoom[i] = usersOfRoom[i];
+                }
+                asd = false;
+            }
+            //console.log("********************************")
+            //console.log(usersOfRoom);
+            //console.log("********************************")
+            //console.log(filteredUsersOfRoom);
+            //console.log("********************************")
+        };
+
+        let usersOfRoom = [];
+        let filteredUsersOfRoom = [];
+        socket.on("listforchat", (people)=>{
+            asd = true;
+            peoplelistchat.innerHTML = "";
+            renderUserChat(people);
+        })
 
         // Player - User Movement Part
 

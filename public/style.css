@@ -196,3 +196,10 @@ body{
 @media only screen and (max-width: 1667px) {
     #leftpart{display: none;}
 }
+
+.selectedchat{
+    background-color: yellow;
+}
+.selectedchat::before{
+    content: "-->";   
+}

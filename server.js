@@ -84,8 +84,8 @@ io.on("connection", (socket) => {
         emitAll(socket, "init", time, vid, playlist, userIdToApply, isLoop)
     })
 
-    socket.on("message", (userId, message) => {
-        let msg = new Message(userId, message, new Date().toTimeString().slice(0, 8));
+    socket.on("message", (userId, message, time) => {
+        let msg = new Message(userId, message, time);
         emitAll(socket, "newMessage", JSON.stringify(msg))
         if(message == "/loop") emitAll(socket, "loop", userId)
     });
@@ -105,6 +105,11 @@ io.on("connection", (socket) => {
     socket.on("getPeopleList", async () => {
         const sockets = await io.in(socket.roomId).fetchSockets();
         socket.emit("list", sockets.map(e => e.userId))
+    })
+
+    socket.on("getPeopleListforchat", async () => {
+        const sockets = await io.in(socket.roomId).fetchSockets();
+        socket.emit("listforchat", sockets.map(e => e.userId))
     })
 
     socket.on("queue", (link, name) => {
