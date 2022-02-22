@@ -96,21 +96,20 @@
         <!-- Right part -- Chat Section -- -->
         <div id="rightpart">
             <div class="cont" style="flex-direction: column;">
-                <div id="chat" readonly class="form-control"></div>
+                <div id="chat" readonly class="form-control">
+                </div>
                 <div id="peoplelist"
                     style="position: absolute;opacity: 0;margin-top:-400px;float:right;z-index: -1;color:bisque">
                 </div>
-                
 
-                <div id="peoplelistchat"
-                    style="display:none;position: absolute;min-width: 100px;min-height: 100px;float: left;z-index: 1;color: #000;background-color: lawngreen;top: 48%;">
-                </div>
-                
+                <div id="peoplelistchat" class="peopleonchat"></div>
 
+                
 
                 <div class="input-group mb-3">
-                    <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
-                        aria-describedby="basic-addon2">
+                        <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
+                            aria-describedby="basic-addon2">
+                   
                     <div class="input-group-append">
                         <button id="chatsubmit" class="btn btn-dark" type="button">Send</button>
                         <button id="people" class="btn btn-dark" style="float:right;"><i class="fa fa-users"
@@ -282,6 +281,39 @@
 
         // Chat Part
 
+        function setCaretPosition(elemId, caretPos) {
+    var el = document.getElementById(elemId);
+
+    el.value = el.value;
+    // ^ this is used to not only get "focus", but
+    // to make sure we don't have it everything -selected-
+    // (it causes an issue in chrome, and having it doesn't hurt any other browser)
+
+    if (el !== null) {
+
+        if (el.createTextRange) {
+            var range = el.createTextRange();
+            range.move('character', caretPos);
+            range.select();
+            return true;
+        }
+
+        else {
+            // (el.selectionStart === 0 added for Firefox bug)
+            if (el.selectionStart || el.selectionStart === 0) {
+                el.focus();
+                el.setSelectionRange(caretPos, caretPos);
+                return true;
+            }
+
+            else  { // fail city, fortunately this never happens (as far as I've tested) :)
+                el.focus();
+                return false;
+            }
+        }
+    }
+}
+
         function scrollToBottom(id) {
             var div = document.getElementById(id);
             div.scrollTop = div.scrollHeight - div.clientHeight;
@@ -295,6 +327,7 @@
                 .replace(/"/g, '&quot;')
                 .replace("@" + userId, '<span style="background-color:rgb(121, 196, 224)">' +  "@" + userId + "</span>")
             }
+            msg.time = new Date().toTimeString().slice(0, 8);
             chat_message(msg.sender, msg.message, msg.time);
             scrollToBottom("chat")
             if(userId != msg.sender)
@@ -314,39 +347,9 @@
 
         let indx_chatpeople = 0;
         let flag_chatpeople = false;
-        /*document.addEventListener('keyup', (e) => {
-            let messageTxt = document.getElementById('message')
-            if (e.keyCode == 13 && document.activeElement == messageTxt && flag_chatpeople) {
-                chatSubmitFunc();
-            }
-        });*/
-        
+    
         document.getElementById('message').onkeyup = (keyboardEvent) => {
-            /*if( document.getElementById('message').value[document.getElementById('message').value.length - 1] == "@" ){
-                return;
-            }
-            console.log(keyboardEvent);
-            if(keyboardEvent.keyCode == 81){
-                socket.emit("getPeopleListforchat")
-                flag_chatpeople = true;
-            }
-            else if(keyboardEvent.keyCode == 32){
-                peoplelistchat.style.display = "none";
-                peoplelistchat.innerHTML = "";
-                flag_chatpeople = false;
-            }
-            else if(keyboardEvent.keyCode == 8){
-                if( document.getElementById('message').value[document.getElementById('message').value.length - 1] == "@" ){
-                    peoplelistchat.style.display = "block";
-                    //flag_chatpeople = false;
-                }
-                if( !document.getElementById('message').value.includes("@") ){
-                    peoplelistchat.style.display = "none";
-                    peoplelistchat.innerHTML = "";
-                }
-            }else{
-
-            }*/
+            keyboardEvent.preventDefault();
             if(keyboardEvent.keyCode == 13){
                 if(flag_chatpeople){
                     let sbstr = document.getElementById('message').value.substring(document.getElementById('message').value.lastIndexOf("@"), document.getElementById('message').value.length);
@@ -367,43 +370,89 @@
                 }
             }
             if(keyboardEvent.keyCode == 38){ // Up button
+                //let carFunc = ()=>
+                setCaretPosition( "message",  document.getElementById("message").value.length)
+                //setTimeout(carFunc, 100);
+                keyboardEvent.preventDefault();
                 if(indx_chatpeople == 0) return;
                 indx_chatpeople--;
-                renderUserChat(filteredUsersOfRoom)
+                renderUserChat(filteredUsersOfRoom, false, true)
+                adjustScrollOfPeopleListChat();
             }
             if(keyboardEvent.keyCode == 40){ // Down button
-                if(indx_chatpeople == usersOfRoom.length - 1) return;
+                //let carFunc2 = ()=>
+                setCaretPosition( "message",  document.getElementById("message").value.length)
+                //setTimeout(carFunc2, 100);
+                if(indx_chatpeople == filteredUsersOfRoom.length - 1) return;
                 indx_chatpeople++;
-                renderUserChat(filteredUsersOfRoom)
+                renderUserChat(filteredUsersOfRoom, false, true)
+                adjustScrollOfPeopleListChat();
             }
         };
 
+        let adjustScrollOfPeopleListChat = ()=>{
+            var rect2 = document.getElementById("peoplelistchat").getBoundingClientRect();
+            var rect = document.getElementsByClassName("selectedchat")[0].getBoundingClientRect();
+            console.log(rect2.top, rect2.right, rect2.bottom, rect2.left);
+            console.log(rect.top, rect.right, rect.bottom, rect.left);
+            console.log("------");
+            // Scroll Down
+            let elem = document.getElementById("peoplelistchat");
+            if(rect.top>rect2.bottom- 30){
+                elem.scroll(0, elem.scrollTop + 30)
+            }
+            // Scroll up
+            else if(rect.top<rect2.top +30){
+                document.getElementById("peoplelistchat")
+                elem.scroll(0,elem.scrollTop - 30)
+            }
+        }
+
+        let setpeoplelistchatarea = ()=>{
+            var rect = document.getElementById("message").getBoundingClientRect();
+                document.getElementById("peoplelistchat").style.top = (rect.top - 150).toString() + "px";
+                document.getElementById("peoplelistchat").style.left = (rect.left).toString()+ "px";
+                document.getElementById("peoplelistchat").style.bottom = (rect.left).toString()+ "px";
+                document.getElementById("peoplelistchat").style.right = (rect.right).toString()+ "px";
+        }
+
+        window.addEventListener("resize", ()=>{
+            setpeoplelistchatarea();
+        }, false)
+
         document.getElementById("message").oninput = (inputEvent)=>{
-            console.log(inputEvent.data);
             if(inputEvent.data == "@"){
+
+                setpeoplelistchatarea();
+
                 socket.emit("getPeopleListforchat")
                 flag_chatpeople = true;
+                return;
             }
             else if(inputEvent.data == " "){
+                document.getElementById("peoplelistchat").scroll(0, 0)
                 peoplelistchat.style.display = "none";
                 peoplelistchat.innerHTML = "";
                 flag_chatpeople = false;
+                indx_chatpeople = 0;
             }
             else if(inputEvent.data == null){ // Backspace
                 if( document.getElementById('message').value[document.getElementById('message').value.length - 1] == "@" ){
                     peoplelistchat.style.display = "block";
                     flag_chatpeople = true;
-                    renderUserChat(usersOfRoom)
                 }
                 if( !document.getElementById('message').value.includes("@") ){
+                    document.getElementById("peoplelistchat").scroll(0, 0)
                     peoplelistchat.style.display = "none";
                     peoplelistchat.innerHTML = "";
                     flag_chatpeople = false;
+                    indx_chatpeople = 0;
                 }
+
             }
             if(flag_chatpeople){
                 let search = document.getElementById('message').value.substring(document.getElementById('message').value.lastIndexOf("@") + 1, document.getElementById('message').value.length)
-                if(search.length == 0)return;
+                //if(search.length == 0)return;
                 
                 peoplelistchat.innerHTML = "";
 
@@ -411,23 +460,25 @@
                 filteredUsersOfRoom = [];
                 for(let i = 0; i < usersOfRoom.length; i++){
                     if(usersOfRoom[i].toString().startsWith(search)){
-                        filteredUsersOfRoom[j++] = usersOfRoom[i];
+                        filteredUsersOfRoom[j++] = usersOfRoom[i].toString();
                     }
                 }
                 renderUserChat(filteredUsersOfRoom, true )
+                console.log("worked");
             }
         }
 
         let asd = true;
-        let renderUserChat = (people, isFilter)=>{
+        let renderUserChat = (people, isFilter, flag)=>{
+            let indx_usage = isFilter ? 0 : indx_chatpeople;
             people = people.filter(function( element ) {
                 return element !== undefined;
             });
             peoplelistchat.innerHTML = "";
             if (isFilter) indx_chatpeople = 0;
             for(let i = 0; i < people.length; i++){
-                if(!isFilter)usersOfRoom[i] = people[i].toString();
-                if(i == indx_chatpeople) 
+                if(!isFilter && !flag)usersOfRoom[i] = people[i].toString();
+                if(i == indx_usage) 
                     peoplelistchat.innerHTML += `<span class="selectedchat">${people[i]}</span>` + "<br>";
                 else
                     peoplelistchat.innerHTML += people[i] + "<br>";
@@ -435,15 +486,10 @@
             peoplelistchat.style.display = "block";
             if(asd){
                 for(let i = 0; i < people.length; i++){
-                    filteredUsersOfRoom[i] = usersOfRoom[i];
+                    filteredUsersOfRoom[i] = usersOfRoom[i].toString();
                 }
                 asd = false;
             }
-            //console.log("********************************")
-            //console.log(usersOfRoom);
-            //console.log("********************************")
-            //console.log(filteredUsersOfRoom);
-            //console.log("********************************")
         };
 
         let usersOfRoom = [];
@@ -644,6 +690,7 @@
         let topbuttons = document.getElementById('topbuttons');
         let oldStyle = [];
         hideBtn.onclick = ()=>{
+
             // Deep copying.
             oldStyle.push(JSON.parse(JSON.stringify(showplaylist.style)).display);
             oldStyle.push(JSON.parse(JSON.stringify(contRightSideOfMiddlePart.style)).width);
@@ -666,6 +713,9 @@
             chat.style.width = "450px";
             chat.style.maxWidth = "450px";
             topbuttons.style.display = "none";
+
+            setpeoplelistchatarea();
+
         }
         showplaylist.onclick = ()=>{
             document.querySelector("#peoplelist").style.margin = "0px 0px 0px 180px"
@@ -680,6 +730,9 @@
             chat.style.width = oldStyle.shift();
             chat.style.maxWidth = "400px";
             topbuttons.style.display = "flex";
+
+            setpeoplelistchatarea();
+
         };
 
         let isLoop = false;
