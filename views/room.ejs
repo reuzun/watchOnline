@@ -7,7 +7,10 @@
     <script>
 
         let chat_message = (userId, message, time) => {
-            message = message
+            message = message.replace(/>/g, '&gt;')
+                .replace(/</g, '&lt;')
+                .replace(/"/g, '&quot;')
+                .replace("@" + userId, '<span style="background-color:rgb(121, 196, 224)">' +  "@" + userId + "</span>")
                 //.replace(/>/g, '&gt;')
                 //.replace(/</g, '&lt;')
                 //.replace(/"/g, '&quot;')
