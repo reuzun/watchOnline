@@ -563,6 +563,7 @@
             if (isLoop) {
                 isLoop = false;
                 chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
+                scrollToBottom("chat")
             }
         });
 
@@ -757,6 +758,7 @@
             else
                 chat_message('Admin', `Loop disabled by ${params[0]}`, new Date().toTimeString().slice(0, 8))
             isLoop = !isLoop;
+            scrollToBottom("chat")
         })
 
 
