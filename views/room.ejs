@@ -10,10 +10,10 @@
             message = message.replace(/>/g, '&gt;')
                 .replace(/</g, '&lt;')
                 .replace(/"/g, '&quot;')
-                .replace("@" + userId, '<span style="background-color:rgb(121, 196, 224)">' +  "@" + userId + "</span>")
-                //.replace(/>/g, '&gt;')
-                //.replace(/</g, '&lt;')
-                //.replace(/"/g, '&quot;')
+                .replace("@" + userId, '<span style="background-color:rgb(121, 196, 224)">' + "@" + userId + "</span>")
+            //.replace(/>/g, '&gt;')
+            //.replace(/</g, '&lt;')
+            //.replace(/"/g, '&quot;')
             document.getElementById('chat').innerHTML += '<span class="chatmessage">' + time + ` <span class="chatuser" style='color:blue;'>${userId}: </span>${message}` + "</span><br>";
         };
 
@@ -57,10 +57,12 @@
 
     <div class="cont" style="padding-top: 2%;">
         <!-- Left part -- Playlist Section -- -->
-        <button id="showplaylist" style="display:none;position: absolute;top: 500px;left: -10px;height: 90px;border-radius: 50px;padding-right: 1px;font-weight: bolder;background-color: rgb(61, 53, 53);color: whitesmoke;">><br>><br>></button>
+        <button id="showplaylist"
+            style="display:none;position: absolute;top: 500px;left: -10px;height: 90px;border-radius: 50px;padding-right: 1px;font-weight: bolder;background-color: rgb(61, 53, 53);color: whitesmoke;">><br>><br>></button>
         <div id="leftpart">
             <fieldset style="margin-top: 4%;">
-                <legend>Playlist <button id="playlisthide" class="btn btn-dark" style="float: right;">Hide</button></legend>
+                <legend>Playlist <button id="playlisthide" class="btn btn-dark" style="float: right;">Hide</button>
+                </legend>
                 <table class="table">
                     <thead>
                         <tr>
@@ -107,12 +109,12 @@
 
                 <div id="peoplelistchat" class="peopleonchat"></div>
 
-                
+
 
                 <div class="input-group mb-3">
-                        <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
-                            aria-describedby="basic-addon2">
-                   
+                    <input id="message" type="text" class="form-control" placeholder="Message!" aria-label="Message!"
+                        aria-describedby="basic-addon2">
+
                     <div class="input-group-append">
                         <button id="chatsubmit" class="btn btn-dark" type="button">Send</button>
                         <button id="people" class="btn btn-dark" style="float:right;"><i class="fa fa-users"
@@ -149,13 +151,13 @@
                             <li>
                                 <!-- Github -->
                                 <a class="btn btn-outline-light btn-floating m-1 iconlink"
-                                    href="https://www.github.com/reuzun/watchOnline" target="_blank"
-                                    role="button"><i class="fab fa-github"></i>Github</a>
+                                    href="https://www.github.com/reuzun/watchOnline" target="_blank" role="button"><i
+                                        class="fab fa-github"></i>Github</a>
                             </li>
                             <li>
                                 <a class="btn btn-outline-light btn-floating m-1 iconlink"
-                                    href="https://www.github.com/reuzun/watchOnline" target="_blank"
-                                    role="button"><i class="fa fa-envelope"></i>Mail</a>
+                                    href="https://www.github.com/reuzun/watchOnline" target="_blank" role="button"><i
+                                        class="fa fa-envelope"></i>Mail</a>
                             </li>
                         </ul>
                     </div>
@@ -232,10 +234,20 @@
 
         let userId = undefined;
 
+        // Security for changing local storage!
+        window.addEventListener("storage", function () {
+            localStorage.setItem("userId", userId);
+        }, false);
+
         // Connection - Initting part
         socket.on('connected', (str, id) => {
-            userId = id;
-            socket.emit("save", myRoomId);
+            if (localStorage.getItem("userId")) {
+                userId = localStorage.getItem("userId");
+            } else {
+                localStorage.setItem("userId", id);
+                userId = id;
+            }
+            socket.emit("save", myRoomId, userId);
         });
 
         socket.on("disconnection", (params) => {
@@ -247,14 +259,14 @@
             socket.emit('roomEnterSeek', player.getCurrentTime(), player.getVideoUrl(), playlistData_client, userIdToApply, id, isLoop)
         })
 
-        socket.on("newusermessage", (params)=>{
-            if(userId == params[0])return
+        socket.on("newusermessage", (params) => {
+            if (userId == params[0]) return
             chat_message("Admin", "User " + params[0] + " has connected the room.", new Date().toTimeString().slice(0, 8))
         })
 
         let playlistInitFlag = true;
         socket.on('init', async (params) => {
-            if (userId != params[3]){
+            if (userId != params[3]) {
                 //chat_message("Admin", params[3] + " has joined the room.", new Date().toTimeString().slice(0, 8))
                 return // Not best practice there should be a way just to send a particular socket.
             }
@@ -277,7 +289,7 @@
                 playlistData_client.push(playlist[i]);
             }
 
-            if(playlistData_client.length > 0)
+            if (playlistData_client.length > 0)
                 skipVideoButton.style.display = "block";
 
         })
@@ -285,37 +297,37 @@
         // Chat Part
 
         function setCaretPosition(elemId, caretPos) {
-    var el = document.getElementById(elemId);
+            var el = document.getElementById(elemId);
 
-    el.value = el.value;
-    // ^ this is used to not only get "focus", but
-    // to make sure we don't have it everything -selected-
-    // (it causes an issue in chrome, and having it doesn't hurt any other browser)
+            el.value = el.value;
+            // ^ this is used to not only get "focus", but
+            // to make sure we don't have it everything -selected-
+            // (it causes an issue in chrome, and having it doesn't hurt any other browser)
 
-    if (el !== null) {
+            if (el !== null) {
 
-        if (el.createTextRange) {
-            var range = el.createTextRange();
-            range.move('character', caretPos);
-            range.select();
-            return true;
-        }
+                if (el.createTextRange) {
+                    var range = el.createTextRange();
+                    range.move('character', caretPos);
+                    range.select();
+                    return true;
+                }
 
-        else {
-            // (el.selectionStart === 0 added for Firefox bug)
-            if (el.selectionStart || el.selectionStart === 0) {
-                el.focus();
-                el.setSelectionRange(caretPos, caretPos);
-                return true;
+                else {
+                    // (el.selectionStart === 0 added for Firefox bug)
+                    if (el.selectionStart || el.selectionStart === 0) {
+                        el.focus();
+                        el.setSelectionRange(caretPos, caretPos);
+                        return true;
+                    }
+
+                    else { // fail city, fortunately this never happens (as far as I've tested) :)
+                        el.focus();
+                        return false;
+                    }
+                }
             }
-
-            else  { // fail city, fortunately this never happens (as far as I've tested) :)
-                el.focus();
-                return false;
-            }
         }
-    }
-}
 
         function scrollToBottom(id) {
             var div = document.getElementById(id);
@@ -324,16 +336,16 @@
 
         socket.on('newMessage', (msg) => {
             msg = JSON.parse(msg);
-            if(msg.message.includes("@" + userId)){
+            if (msg.message.includes("@" + userId)) {
                 msg.message = msg.message.replace(/>/g, '&gt;')
-                .replace(/</g, '&lt;')
-                .replace(/"/g, '&quot;')
-                .replace("@" + userId, '<span style="background-color:rgb(121, 196, 224)">' +  "@" + userId + "</span>")
+                    .replace(/</g, '&lt;')
+                    .replace(/"/g, '&quot;')
+                //.replace("@" + userId, '<span style="background-color:rgb(121, 196, 224)">' +  "@" + userId + "</span>")
             }
             msg.time = new Date().toTimeString().slice(0, 8);
             chat_message(msg.sender, msg.message, msg.time);
             scrollToBottom("chat")
-            if(userId != msg.sender)
+            if (userId != msg.sender)
                 new Audio(`${'<%=URL%>'}` + "/notificationsound.mp3").play();
         });
 
@@ -350,15 +362,15 @@
 
         let indx_chatpeople = 0;
         let flag_chatpeople = false;
-    
+
         document.getElementById('message').onkeyup = (keyboardEvent) => {
             keyboardEvent.preventDefault();
-            if(keyboardEvent.keyCode == 13){
-                if(flag_chatpeople){
+            if (keyboardEvent.keyCode == 13) {
+                if (flag_chatpeople) {
                     let sbstr = document.getElementById('message').value.substring(document.getElementById('message').value.lastIndexOf("@"), document.getElementById('message').value.length);
                     console.log(sbstr);
                     let change = document.getElementsByClassName("selectedchat")[0].innerHTML;
-                    document.getElementById("message").value = document.getElementById("message").value.replace(sbstr,"@" + change + " ")
+                    document.getElementById("message").value = document.getElementById("message").value.replace(sbstr, "@" + change + " ")
                     flag_chatpeople = false;
                     peoplelistchat.style.display = "none";
                     peoplelistchat.innerHTML = "";
@@ -372,28 +384,28 @@
                     chatSubmitFunc();
                 }
             }
-            if(keyboardEvent.keyCode == 38){ // Up button
+            if (keyboardEvent.keyCode == 38) { // Up button
                 //let carFunc = ()=>
-                setCaretPosition( "message",  document.getElementById("message").value.length)
+                setCaretPosition("message", document.getElementById("message").value.length)
                 //setTimeout(carFunc, 100);
                 keyboardEvent.preventDefault();
-                if(indx_chatpeople == 0) return;
+                if (indx_chatpeople == 0) return;
                 indx_chatpeople--;
                 renderUserChat(filteredUsersOfRoom, false, true)
                 adjustScrollOfPeopleListChat();
             }
-            if(keyboardEvent.keyCode == 40){ // Down button
+            if (keyboardEvent.keyCode == 40) { // Down button
                 //let carFunc2 = ()=>
-                setCaretPosition( "message",  document.getElementById("message").value.length)
+                setCaretPosition("message", document.getElementById("message").value.length)
                 //setTimeout(carFunc2, 100);
-                if(indx_chatpeople == filteredUsersOfRoom.length - 1) return;
+                if (indx_chatpeople == filteredUsersOfRoom.length - 1) return;
                 indx_chatpeople++;
                 renderUserChat(filteredUsersOfRoom, false, true)
                 adjustScrollOfPeopleListChat();
             }
         };
 
-        let adjustScrollOfPeopleListChat = ()=>{
+        let adjustScrollOfPeopleListChat = () => {
             var rect2 = document.getElementById("peoplelistchat").getBoundingClientRect();
             var rect = document.getElementsByClassName("selectedchat")[0].getBoundingClientRect();
             console.log(rect2.top, rect2.right, rect2.bottom, rect2.left);
@@ -401,30 +413,30 @@
             console.log("------");
             // Scroll Down
             let elem = document.getElementById("peoplelistchat");
-            if(rect.top>rect2.bottom- 30){
+            if (rect.top > rect2.bottom - 30) {
                 elem.scroll(0, elem.scrollTop + 30)
             }
             // Scroll up
-            else if(rect.top<rect2.top +30){
+            else if (rect.top < rect2.top + 30) {
                 document.getElementById("peoplelistchat")
-                elem.scroll(0,elem.scrollTop - 30)
+                elem.scroll(0, elem.scrollTop - 30)
             }
         }
 
-        let setpeoplelistchatarea = ()=>{
+        let setpeoplelistchatarea = () => {
             var rect = document.getElementById("message").getBoundingClientRect();
-                document.getElementById("peoplelistchat").style.top = (rect.top - 150).toString() + "px";
-                document.getElementById("peoplelistchat").style.left = (rect.left).toString()+ "px";
-                document.getElementById("peoplelistchat").style.bottom = (rect.left).toString()+ "px";
-                document.getElementById("peoplelistchat").style.right = (rect.right).toString()+ "px";
+            document.getElementById("peoplelistchat").style.top = (rect.top - 150).toString() + "px";
+            document.getElementById("peoplelistchat").style.left = (rect.left).toString() + "px";
+            document.getElementById("peoplelistchat").style.bottom = (rect.left).toString() + "px";
+            document.getElementById("peoplelistchat").style.right = (rect.right).toString() + "px";
         }
 
-        window.addEventListener("resize", ()=>{
+        window.addEventListener("resize", () => {
             setpeoplelistchatarea();
         }, false)
 
-        document.getElementById("message").oninput = (inputEvent)=>{
-            if(inputEvent.data == "@"){
+        document.getElementById("message").oninput = (inputEvent) => {
+            if (inputEvent.data == "@") {
 
                 setpeoplelistchatarea();
 
@@ -432,19 +444,19 @@
                 flag_chatpeople = true;
                 return;
             }
-            else if(inputEvent.data == " "){
+            else if (inputEvent.data == " ") {
                 document.getElementById("peoplelistchat").scroll(0, 0)
                 peoplelistchat.style.display = "none";
                 peoplelistchat.innerHTML = "";
                 flag_chatpeople = false;
                 indx_chatpeople = 0;
             }
-            else if(inputEvent.data == null){ // Backspace
-                if( document.getElementById('message').value[document.getElementById('message').value.length - 1] == "@" ){
+            else if (inputEvent.data == null) { // Backspace
+                if (document.getElementById('message').value[document.getElementById('message').value.length - 1] == "@") {
                     peoplelistchat.style.display = "block";
                     flag_chatpeople = true;
                 }
-                if( !document.getElementById('message').value.includes("@") ){
+                if (!document.getElementById('message').value.includes("@")) {
                     document.getElementById("peoplelistchat").scroll(0, 0)
                     peoplelistchat.style.display = "none";
                     peoplelistchat.innerHTML = "";
@@ -453,42 +465,42 @@
                 }
 
             }
-            if(flag_chatpeople){
+            if (flag_chatpeople) {
                 let search = document.getElementById('message').value.substring(document.getElementById('message').value.lastIndexOf("@") + 1, document.getElementById('message').value.length)
                 //if(search.length == 0)return;
-                
+
                 peoplelistchat.innerHTML = "";
 
                 let j = 0;
                 filteredUsersOfRoom = [];
-                for(let i = 0; i < usersOfRoom.length; i++){
-                    if(usersOfRoom[i].toString().startsWith(search)){
+                for (let i = 0; i < usersOfRoom.length; i++) {
+                    if (usersOfRoom[i].toString().startsWith(search)) {
                         filteredUsersOfRoom[j++] = usersOfRoom[i].toString();
                     }
                 }
-                renderUserChat(filteredUsersOfRoom, true )
+                renderUserChat(filteredUsersOfRoom, true)
                 console.log("worked");
             }
         }
 
         let asd = true;
-        let renderUserChat = (people, isFilter, flag)=>{
+        let renderUserChat = (people, isFilter, flag) => {
             let indx_usage = isFilter ? 0 : indx_chatpeople;
-            people = people.filter(function( element ) {
+            people = people.filter(function (element) {
                 return element !== undefined;
             });
             peoplelistchat.innerHTML = "";
             if (isFilter) indx_chatpeople = 0;
-            for(let i = 0; i < people.length; i++){
-                if(!isFilter && !flag)usersOfRoom[i] = people[i].toString();
-                if(i == indx_usage) 
+            for (let i = 0; i < people.length; i++) {
+                if (!isFilter && !flag) usersOfRoom[i] = people[i].toString();
+                if (i == indx_usage)
                     peoplelistchat.innerHTML += `<span class="selectedchat">${people[i]}</span>` + "<br>";
                 else
                     peoplelistchat.innerHTML += people[i] + "<br>";
             }
             peoplelistchat.style.display = "block";
-            if(asd){
-                for(let i = 0; i < people.length; i++){
+            if (asd) {
+                for (let i = 0; i < people.length; i++) {
                     filteredUsersOfRoom[i] = usersOfRoom[i].toString();
                 }
                 asd = false;
@@ -497,7 +509,7 @@
 
         let usersOfRoom = [];
         let filteredUsersOfRoom = [];
-        socket.on("listforchat", (people)=>{
+        socket.on("listforchat", (people) => {
             asd = true;
             peoplelistchat.innerHTML = "";
             renderUserChat(people);
@@ -548,7 +560,7 @@
             let link = data[0];
             player.loadVideoById(link);
             window.history.pushState("", "", link);
-            if(isLoop){
+            if (isLoop) {
                 isLoop = false;
                 chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
             }
@@ -562,7 +574,7 @@
                 //element.style.visibility = 'visible';
                 element.style.opacity = '1';
                 peopleLi.style.backgroundColor = "#293009"
-                if(showplaylist.style.display == "none")
+                if (showplaylist.style.display == "none")
                     element.style.margin = "0px 0px 0px 180px"
                 else
                     element.style.margin = "0px 0px -135px 250px"
@@ -576,7 +588,7 @@
                 element.style.opacity = '0';
                 element.padding = '0';
                 peopleLi.style.backgroundColor = "green"
-                if(showplaylist.style.display == "none")
+                if (showplaylist.style.display == "none")
                     element.style.margin = "0px 0px -410px 180px "
                 else
                     element.style.margin = "0px 0px -545px 250px "
@@ -646,11 +658,11 @@
         let skipVideoButton = document.getElementById('skipvideo');
         skipVideoButton.onclick = () => {
             if (playlistData_client.length == 0) return;
-                socket.emit("skipVideo");
+            socket.emit("skipVideo");
         };
 
         socket.on("playNextVideo", () => {
-            if(isLoop){
+            if (isLoop) {
                 isLoop = false;
                 chat_message('Admin', `Loop disabled.`, new Date().toTimeString().slice(0, 8))
             }
@@ -658,11 +670,11 @@
         });
 
         let playNextVideo = () => {
-            if(isLoop){
+            if (isLoop) {
                 let link = player.getVideoUrl();
                 link = link.substring(link.lastIndexOf("=") + 1, link.length)
                 player.loadVideoById(link);
-            }else{
+            } else {
                 let link = playlistData_client.shift();
                 link = link.substring(link.lastIndexOf("=") + 1, link.length)
                 window.history.pushState("", "", link);
@@ -670,7 +682,7 @@
                 // Rerendering could be done. Since when u remove child
                 // the next videos number becomes 2 instead of 2
                 playlistTbody.removeChild(playlistTbody.getElementsByTagName('tr')[0]);
-                if(playlistData_client.length == 0) 
+                if (playlistData_client.length == 0)
                     skipVideoButton.style.display = "none";
             }
         }
@@ -678,10 +690,10 @@
 
 
         let showplaylist = document.getElementById("showplaylist");
-        showplaylist.onmouseenter = ()=>{
+        showplaylist.onmouseenter = () => {
             showplaylist.style.left = "0px";
         }
-        showplaylist.onmouseleave = ()=>{
+        showplaylist.onmouseleave = () => {
             showplaylist.style.left = "-10px";
         }
         let hideBtn = document.getElementById("playlisthide");
@@ -692,7 +704,7 @@
         let chat = document.getElementById('chat');
         let topbuttons = document.getElementById('topbuttons');
         let oldStyle = [];
-        hideBtn.onclick = ()=>{
+        hideBtn.onclick = () => {
 
             // Deep copying.
             oldStyle.push(JSON.parse(JSON.stringify(showplaylist.style)).display);
@@ -720,7 +732,7 @@
             setpeoplelistchatarea();
 
         }
-        showplaylist.onclick = ()=>{
+        showplaylist.onclick = () => {
             document.querySelector("#peoplelist").style.margin = "0px 0px 0px 180px"
             showplaylist.style.display = "none";
             showplaylist.style.display = oldStyle.shift();
@@ -739,8 +751,8 @@
         };
 
         let isLoop = false;
-        socket.on("loop", (params)=>{
-            if(!isLoop)
+        socket.on("loop", (params) => {
+            if (!isLoop)
                 chat_message('Admin', `Loop enabled by ${params[0]}`, new Date().toTimeString().slice(0, 8))
             else
                 chat_message('Admin', `Loop disabled by ${params[0]}`, new Date().toTimeString().slice(0, 8))

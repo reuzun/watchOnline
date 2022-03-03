@@ -70,8 +70,9 @@ io.on("connection", (socket) => {
     socket.userId = createRandomUsername();
     socket.emit("connected", "New Connection occured.", socket.userId)
 
-    socket.on("save", (roomId) => {
+    socket.on("save", (roomId, id) => {
         socket.roomId = roomId;
+        socket.userId = id;
         if (!nonfreerooms.includes(roomId)) nonfreerooms.push(roomId)
         else {
             socket.to(socket.roomId).emit("getCurrent", socket.userId, socket.id);
